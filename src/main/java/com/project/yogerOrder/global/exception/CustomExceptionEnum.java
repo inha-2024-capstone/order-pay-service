@@ -1,6 +1,8 @@
 package com.project.yogerOrder.global.exception;
 
 import com.project.yogerOrder.global.exception.specific.NotHandledException;
+import com.project.yogerOrder.product.exception.ProductInsufficientException;
+import com.project.yogerOrder.product.exception.ProductNotFoundException;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -9,7 +11,11 @@ import java.util.HashSet;
 
 public enum CustomExceptionEnum {
 
-    ERROR(0, NotHandledException.class);
+    ERROR(0, NotHandledException.class),
+
+    PRODUCT_INSUFFICIENT(300, ProductInsufficientException.class),
+    PRODUCT_NOT_FOUND(301, ProductNotFoundException.class);
+    //PRODUCT_SERVER_ERROR(302, ProductServerStateException.class); // 응답을 못하기에 등록하지 않음
 
 
     private final Integer CUSTOM_CODE_LENGTH = 3;
