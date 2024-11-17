@@ -1,6 +1,7 @@
 package com.project.yogerOrder.order.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
+import com.project.yogerOrder.order.config.OrderConfig;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -46,5 +49,10 @@ public class OrderEntity extends BaseTimeEntity {
 
     public static OrderEntity createPendingOrder(Long productId, Integer quantity, Long buyerId) {
         return new OrderEntity(productId, quantity, buyerId, OrderState.PENDING);
+    }
+
+    public Boolean isPayable(OrderConfig orderConfig) {
+        return this.state == OrderState.PENDING
+                && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(orderConfig.timeLimit()));
     }
 }

@@ -1,6 +1,7 @@
 package com.project.yogerOrder.order.controller;
 
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
+import com.project.yogerOrder.order.dto.response.OrderCountResponseDTO;
 import com.project.yogerOrder.order.dto.response.OrderResponseDTO;
 import com.project.yogerOrder.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -24,4 +25,12 @@ public class OrderController {
 
         return new ResponseEntity<>(new OrderResponseDTO(orderId), HttpStatus.CREATED);
     }
+
+    @PostMapping("/products/{productId}/count")
+    public ResponseEntity<OrderCountResponseDTO> countOrderByProductId(@PathVariable("productId") Long productId) {
+        Integer count = orderService.countOrdersByProductId(productId);
+
+        return new ResponseEntity<>(new OrderCountResponseDTO(count),HttpStatus.OK);
+    }
 }
+
