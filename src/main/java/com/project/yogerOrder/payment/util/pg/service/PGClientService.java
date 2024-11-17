@@ -10,4 +10,6 @@ import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformRespon
 public interface PGClientService {
 
     PGPaymentInformResponseDTO getInformById(String paymentId) throws InvalidPaymentRequestException, PGServerException, NotHandledException;
+
+    void refund(PGRefundRequestDTO pgRefundRequestDTO) throws InvalidPaymentRefundException, PGServerException, NotHandledException;
 }

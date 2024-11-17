@@ -1,11 +1,14 @@
 package com.project.yogerOrder.payment.util.pg.service;
 
+import com.project.yogerOrder.payment.exception.InvalidPaymentRefundException;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
 import com.project.yogerOrder.payment.exception.PGServerException;
+import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.enums.PGState;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
+import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import okhttp3.MediaType;
@@ -26,6 +29,7 @@ import retrofit2.HttpException;
 import java.io.IOException;
 import java.math.BigDecimal;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -137,4 +141,71 @@ class PortOneClientServiceTest {
                 .isInstanceOf(PGServerException.class);
     }
 
+
+    @Test
+    void refundUnauthorizedFail() throws IamportResponseException, IOException {
+        // given
+        String paymentUid = "testPaymentId";
+        Integer amount = 1000;
+        Integer checksum = 1000;
+        PGRefundRequestDTO pgRefundRequestDTO = new PGRefundRequestDTO(paymentUid, checksum, amount);
+
+        CancelData cancelData = new CancelData(paymentUid, true, new BigDecimal(amount));
+        cancelData.setChecksum(new BigDecimal(checksum));
+
+
+        retrofit2.Response<Object> errorResponse = retrofit2.Response.error(HttpStatus.UNAUTHORIZED.value(), emptyResponseBody);
+        HttpException httpException = new HttpException(errorResponse);
+        IamportResponseException iamportResponseException = new IamportResponseException("errorString", httpException);
+
+        // when
+        when(iamportClient.cancelPaymentByImpUid(any())).thenThrow(iamportResponseException);
+
+        // then
+        Assertions.assertThatThrownBy(() -> portOneClientService.refund(pgRefundRequestDTO))
+                .isInstanceOf(InvalidPaymentRefundException.class);
+    }
+
+    @Test
+    void refundPGServerFail() throws IamportResponseException, IOException {
+        // given
+        String paymentUid = "testPaymentId";
+        Integer amount = 1000;
+        Integer checksum = 1000;
+        PGRefundRequestDTO pgRefundRequestDTO = new PGRefundRequestDTO(paymentUid, checksum, amount);
+
+        CancelData cancelData = new CancelData(paymentUid, true, new BigDecimal(amount));
+        cancelData.setChecksum(new BigDecimal(checksum));
+
+
+        retrofit2.Response<Object> errorResponse = retrofit2.Response.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), emptyResponseBody);
+        HttpException httpException = new HttpException(errorResponse);
+        IamportResponseException iamportResponseException = new IamportResponseException("errorString", httpException);
+
+        // when
+        when(iamportClient.cancelPaymentByImpUid(any())).thenThrow(iamportResponseException);
+
+        // then
+        Assertions.assertThatThrownBy(() -> portOneClientService.refund(pgRefundRequestDTO))
+                .isInstanceOf(PGServerException.class);
+    }
+
+    @Test
+    void refundNetworkFail() throws IamportResponseException, IOException {
+        // given
+        String paymentUid = "testPaymentId";
+        Integer amount = 1000;
+        Integer checksum = 1000;
+        PGRefundRequestDTO pgRefundRequestDTO = new PGRefundRequestDTO(paymentUid, checksum, amount);
+
+        CancelData cancelData = new CancelData(paymentUid, true, new BigDecimal(amount));
+        cancelData.setChecksum(new BigDecimal(checksum));
+
+        // when
+        when(iamportClient.cancelPaymentByImpUid(any())).thenThrow(new IOException());
+
+        // then
+        Assertions.assertThatThrownBy(() -> portOneClientService.refund(pgRefundRequestDTO))
+                .isInstanceOf(PGServerException.class);
+    }
 }
