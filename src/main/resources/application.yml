@@ -3,4 +3,17 @@ spring:
         name: yogerOrder
 
     profiles:
-        include: DB
+        include: DB, portOne, service
+
+
+cors:
+    allowedOriginPatterns: '*'
+    allowedHeaders: '*'
+    allowedMethods: '*'
+
+global:
+    timeZone: 'Asia/Seoul'
+
+logging:
+    level:
+        org.library.yogerLibrary.log: DEBUG

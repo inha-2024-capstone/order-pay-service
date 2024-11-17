@@ -37,3 +37,5 @@ out/
 .vscode/
 /src/main/resources/application-portOne.yml
 /src/main/resources/application-DB.yml
+/src/main/resources/application-order.yml
+/src/main/resources/application-service.yml
