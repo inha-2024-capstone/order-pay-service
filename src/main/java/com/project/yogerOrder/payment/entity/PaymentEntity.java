@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "payment_table", indexes = @Index(name = "idx_imp_uid", columnList = "imp_uid"))
+@Table(indexes = @Index(name = "idx_pg_payment_id", columnList = "pg_payment_id"))
 public class PaymentEntity extends BaseTimeEntity {
 
     @Id

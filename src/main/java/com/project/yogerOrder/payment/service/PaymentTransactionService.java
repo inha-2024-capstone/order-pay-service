@@ -30,4 +30,9 @@ public class PaymentTransactionService {
 
         paymentRepository.save(tempPayment);
     }
+
+    @Transactional
+    public void refund(PaymentEntity paymentEntity, Integer refundAmount) {
+        paymentEntity.partialRefund(refundAmount);
+    }
 }

@@ -4,7 +4,10 @@ import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
+import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
+import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
+import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
 import com.project.yogerOrder.payment.exception.PaymentAlreadyExistException;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
@@ -26,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,16 +66,21 @@ class PaymentServiceTest {
     Integer quantity = 3;
     Integer totalAmount = productPrice * quantity;
     Integer confirmedAmountPerQuantity = (int) (productPrice * 0.9);
+    Integer refundAmountPerQuantity = productPrice - confirmedAmountPerQuantity;
+    Integer refundAmount = refundAmountPerQuantity * quantity;
 
     Long orderId = 1L;
     Long productId = 1L;
     Long userId = 1L;
 
 
+
     VerifyPaymentRequestDTO requestDTO = new VerifyPaymentRequestDTO(impUid, merchantUid);
     PGPaymentInformResponseDTO pgInform = new PGPaymentInformResponseDTO(impUid, merchantUid, totalAmount, PGState.PAID);
     ProductResponseDTO productResponseDTO = new ProductResponseDTO(productId, confirmedAmountPerQuantity, productPrice);
     OrderEntity orderEntity = new OrderEntity(orderId, productId, quantity, userId, OrderState.PENDING);
+    PaymentEntity paymentEntity = PaymentEntity.createTempPaidPayment(impUid, orderId, totalAmount, userId);
+    PaymentOrderDTO paymentOrderDTO = new PaymentOrderDTO(paymentEntity, orderEntity);
 
 
     @Test
@@ -140,5 +149,23 @@ class PaymentServiceTest {
         Assertions.assertThat(captor.getValue().checksum()).isEqualTo(pgInform.amount());
         Assertions.assertThat(captor.getValue().refundAmount()).isEqualTo(pgInform.amount());
         verify(paymentTransactionService, times(0)).confirmPaymentAndOrder(any(ConfirmPaymentRequestDTO.class));
+    }
+
+    @Test
+    void productExpirationSuccess() {
+        // given
+        List<PaymentOrderDTO> paymentOrderDTOs = List.of(paymentOrderDTO);
+        given(productService.findById(productId)).willReturn(productResponseDTO);
+        given(paymentRepository.findAllPaymentAndOrderByProductId(productId)).willReturn(paymentOrderDTOs);
+        willDoNothing().given(pgClientService).refund(any());
+        willDoNothing().given(paymentTransactionService).refund(any(), anyInt());
+        PartialRefundRequestDTO partialRefundRequestDTO = new PartialRefundRequestDTO(productPrice, confirmedAmountPerQuantity);
+
+        // when
+        paymentService.productExpiration(productId, partialRefundRequestDTO);
+
+        // then
+        verify(pgClientService, times(paymentOrderDTOs.size())).refund(new PGRefundRequestDTO(impUid, totalAmount, refundAmount));
+        verify(paymentTransactionService, times(paymentOrderDTOs.size())).refund(paymentEntity, refundAmount);
     }
 }
