@@ -26,7 +26,7 @@ public class OrderController {
         return new ResponseEntity<>(new OrderResponseDTO(orderId), HttpStatus.CREATED);
     }
 
-    @PostMapping("/products/{productId}/count")
+    @GetMapping("/products/{productId}/count")
     public ResponseEntity<OrderCountResponseDTO> countOrderByProductId(@PathVariable("productId") Long productId) {
         Integer count = orderService.countOrdersByProductId(productId);
 
