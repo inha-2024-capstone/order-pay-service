@@ -6,6 +6,7 @@ import com.project.yogerOrder.order.dto.response.OrderResponseDTO;
 import com.project.yogerOrder.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.library.yogerLibrary.user.YogerUserId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/products/{productId}")
-    public ResponseEntity<OrderResponseDTO> orderProduct(@RequestHeader("userId") Long userId,
+    public ResponseEntity<OrderResponseDTO> orderProduct(@YogerUserId Long userId,
                                                          @PathVariable("productId") Long productId,
                                                          @RequestBody @Valid OrderRequestDTO orderRequestDTO) {
         Long orderId = orderService.orderProduct(userId, productId, orderRequestDTO);
