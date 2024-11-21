@@ -65,4 +65,12 @@ public class PaymentEntity extends BaseTimeEntity {
     public static PaymentEntity createTempPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
         return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.TEMPORARY_PAID);
     }
+
+    public boolean isPayCompletable() {
+        return this.state == PaymentState.TEMPORARY_PAID;
+    }
+
+    public void updateToErrorState() {
+        this.state = PaymentState.ERROR;
+    }
 }

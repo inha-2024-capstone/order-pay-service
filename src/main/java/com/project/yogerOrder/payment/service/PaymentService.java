@@ -7,7 +7,6 @@ import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.entity.PaymentState;
 import com.project.yogerOrder.payment.exception.*;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
@@ -73,28 +72,31 @@ public class PaymentService {
     public void productExpiration(Long productId, PartialRefundRequestDTO partialRefundRequestDTO) {
         for (PaymentOrderDTO paymentOrderDTO : paymentRepository.findAllPaymentAndOrderByProductId(productId)) {
             PaymentEntity payment = paymentOrderDTO.payment();
-            if (payment.getState() != PaymentState.TEMPORARY_PAID)
-                throw new InvalidPaymentStateException(); //TODO catch
-
             OrderEntity order = paymentOrderDTO.order();
             int refundAmountPerQuantity = partialRefundRequestDTO.originalMaxPrice() - partialRefundRequestDTO.confirmedPrice();
             int refundAmount = refundAmountPerQuantity * order.getQuantity();
             int checksum = payment.getAmount();
 
             try {
+                if (!payment.isPayCompletable()) {
+                    throw new InvalidPaymentStateException();
+                }
+
                 if (!Objects.equals(payment.getAmount(), partialRefundRequestDTO.originalMaxPrice() * order.getQuantity()))
-                    throw new InvalidPaymentRequestException(); //TODO catch
+                    throw new InvalidPaymentRequestException();
 
                 if (!payment.isPartialRefundable(refundAmount))
                     throw new InvalidPaymentRequestException();
 
                 // 외부 API 장애에 따라 db state가 영향받지 않도록, 외부 API 호출이 완료되면 entity를 update하도록 작성
                 pgClientService.refund(new PGRefundRequestDTO(payment.getPgPaymentId(), checksum, refundAmount));
-                paymentTransactionService.refund(payment, refundAmount); //TODO 실패한 것들을 모아서 다시 처리할 수 있는 로직 고려
-            } catch (InvalidPaymentRefundException e) { //TODO 에러 처리 로직 고도화 필요, 실패한 것들 모아서 처리
-                log.error("Failed to cancel payment {}", payment.getId());
-            } catch (PGServerException e) { //TODO 추가 처리
-
+                paymentTransactionService.refund(payment, refundAmount);
+            } catch (InvalidPaymentStateException e) {
+                log.error("payment {} is in invalid state", payment.getId());
+                payment.updateToErrorState();
+            } catch (InvalidPaymentRefundException e) {
+                log.error("Failed to partial refund payment {} from PG", payment.getId());
+                payment.updateToErrorState();
             }
         }
     }
