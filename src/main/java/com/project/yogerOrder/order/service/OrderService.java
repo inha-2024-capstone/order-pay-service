@@ -8,7 +8,6 @@ import com.project.yogerOrder.order.exception.OrderNotFoundException;
 import com.project.yogerOrder.order.exception.OrderRepositoryException;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
-import com.project.yogerOrder.product.exception.ProductServerStateException;
 import com.project.yogerOrder.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,27 +83,20 @@ public class OrderService {
                 .parallelStream()
                 .filter(orderEntity -> orderEntity.getCreatedTime().isBefore(timeLimit))
                 .forEach(orderEntity -> {
+                    // 외부 서비스 호출에 성공하면 DB를 업데이트하도록 변경
                     try {
-                        // 외부 서비스 호출에 성공하면 DB를 업데이트하도록 변경
-                        productService.increaseStock(orderEntity.getProductId(), orderEntity.getQuantity()); //TODO checksum 구현
-                    } catch (ProductNotFoundException e) { //TODO 추가 처리 필요
-                        orderTransactionService.updateToErrorState(orderEntity); //TODO 나중 별도 처리를 위한 error 상태로 전환
-
+                        productService.increaseStock(orderEntity.getProductId(), orderEntity.getQuantity());
+                    } catch (ProductNotFoundException e) {
+                        orderTransactionService.updateToErrorState(orderEntity);
                         log.error("Order(id={})'s product (id={}) is not present in productService, and exception message: {}",
                                 orderEntity.getId(), orderEntity.getProductId(), e.getMessage());
-
-                        return;
-                    } catch (ProductServerStateException e) {
-                        log.error("Error occurred from product server");
-                        return;
-                    } catch (Exception e) {
-                        log.error("Unknown error occurred from product server");
                         return;
                     }
 
                     try {
                         orderTransactionService.updateToExpiredState(orderEntity);
                     } catch (Exception e) {
+                        // expired 상태로 변경하는데 실패하면 stock을 점유하기 위해서 다시 감소
                         productService.decreaseStock(orderEntity.getProductId(), orderEntity.getQuantity());
                         throw new OrderRepositoryException();
                     }
