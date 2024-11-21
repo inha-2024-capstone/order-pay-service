@@ -35,7 +35,6 @@ public class OrderService {
     // CREATE
     // 주문을 생성하는 과정을 먼저 진행하면, 주문이 생성되고, 재고 감소가 실패하기 전에 주문이 결제되면 문제가 생기기 때문에 재고 감소 먼저 진행
     // + 일반적으로 외부 서비스에 문제가 생기는 경우가 많기 때문에 외부 서비스 호출 먼저
-    //TODO error handling, circuit breaker
     @Transactional
     public Long orderProduct(Long userId, Long productId, OrderRequestDTO orderRequestDTO) {
         productService.decreaseStock(productId, orderRequestDTO.quantity());
@@ -95,7 +94,7 @@ public class OrderService {
                                 orderEntity.getId(), orderEntity.getProductId(), e.getMessage());
 
                         return;
-                    } catch (ProductServerStateException e) { //TODO circuit breaker
+                    } catch (ProductServerStateException e) {
                         log.error("Error occurred from product server");
                         return;
                     } catch (Exception e) {

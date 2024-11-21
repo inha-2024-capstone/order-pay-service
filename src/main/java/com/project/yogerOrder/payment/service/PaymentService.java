@@ -93,7 +93,7 @@ public class PaymentService {
                 paymentTransactionService.refund(payment, refundAmount); //TODO 실패한 것들을 모아서 다시 처리할 수 있는 로직 고려
             } catch (InvalidPaymentRefundException e) { //TODO 에러 처리 로직 고도화 필요, 실패한 것들 모아서 처리
                 log.error("Failed to cancel payment {}", payment.getId());
-            } catch (PGServerException e) { //TODO circuit breaker
+            } catch (PGServerException e) { //TODO 추가 처리
 
             }
         }

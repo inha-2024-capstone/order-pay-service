@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-//TODO circuit breaker
 @Service
 @RequiredArgsConstructor
 public class PortOneClientService implements PGClientService {
