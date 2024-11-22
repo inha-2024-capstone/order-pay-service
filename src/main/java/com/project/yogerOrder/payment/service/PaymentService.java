@@ -7,8 +7,6 @@ import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
-import com.project.yogerOrder.payment.exception.PaymentAlreadyExistException;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
@@ -40,24 +38,26 @@ public class PaymentService {
     // 웹훅인 줄 알았는데 외부 요청이었으면 -> 상관 없게 로직 작성
     // 신뢰 정보(= 사용자 조작 불가, 검증 필요): 결제 id(존재 검증), 결제 금액(원래 값과 비교), 결제 상태(paid 상태인지 검사)
     // 비신뢰 정보(= 사용자 조작 가능, 검증 필요): 주문 id(다른 주문 결제 검증 필요 X)
-    //TODO error handling 필요 -> 에러를 발생시키면 api 쪽에서 응답을 보고 retry나 재시도 안하나?
     public void verifyPayment(VerifyPaymentRequestDTO verifyPaymentRequestDTO) {
         // 결제 id 존재 검증
-        if (paymentRepository.existsByPgPaymentId(verifyPaymentRequestDTO.impUid())) // 내부
-            throw new PaymentAlreadyExistException();
+        if (paymentRepository.existsByPgPaymentId(verifyPaymentRequestDTO.impUid())) { // 내부
+            log.debug("Verifying payment {} is ignored because already exists", verifyPaymentRequestDTO.impUid());
+            return;
+        }
 
         PGPaymentInformResponseDTO pgInform = pgClientService.getInformById(verifyPaymentRequestDTO.impUid()); // 외부
-        // 결제된 상태가 아니면 환불 X
-        if (!pgInform.isPaid()) throw new InvalidPaymentRequestException();
+        if (!pgInform.isPaid()) { // 결제된 상태가 아니면 환불 X
+            log.error("PG payment {} is not paid state", pgInform.pgPaymentId());
+            return;
+        }
 
         OrderEntity orderEntity = orderService.findById(Long.valueOf(pgInform.orderId())); // 내부
         Integer originalMaxPrice = productService.findById(orderEntity.getProductId()).originalMaxPrice(); // 외부
-
-        // 내부
-        // 결제 검증 = 상태, 금액
-        if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity()) || !orderService.isPayable(orderEntity)) {
+        // 결제 검증 = 금액, 상태
+        if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity()) || !orderService.isPayable(orderEntity)) { // 내부
+            log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount())); // 외부
-            throw new InvalidPaymentRequestException();
+            return;
         }
 
         paymentTransactionService.confirmPaymentAndOrder(new ConfirmPaymentRequestDTO( // 내부
