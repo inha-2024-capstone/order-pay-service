@@ -15,8 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,9 +53,8 @@ public class OrderService {
         return orderRepository.findById(orderId).orElseThrow(OrderNotFoundException::new);
     }
 
-    @Transactional(readOnly = true)
     public Boolean isPayable(OrderEntity orderEntity) {
-        return orderEntity.isPayable(config);
+        return orderEntity.isPayable(config.validTime());
     }
 
     @Transactional(readOnly = true)
@@ -77,11 +74,9 @@ public class OrderService {
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
     @Scheduled(cron = "${order.cron.expiration}")
     public void orderExpirationSchedule() {
-        LocalDateTime timeLimit = LocalDateTime.now().minusMinutes(config.timeLimit());
-
         orderRepository.findAllByState(OrderState.PENDING)
                 .parallelStream()
-                .filter(orderEntity -> orderEntity.getCreatedTime().isBefore(timeLimit))
+                .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
                 .forEach(orderEntity -> {
                     // 외부 서비스 호출에 성공하면 DB를 업데이트하도록 변경
                     try {

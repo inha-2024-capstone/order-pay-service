@@ -18,4 +18,8 @@ public record PGPaymentInformResponseDTO(@NotBlank String pgPaymentId,
                 PGState.valueOf(payment.getStatus())
         );
     }
+
+    public Boolean isPaid() {
+        return this.status.isPaid();
+    }
 }
