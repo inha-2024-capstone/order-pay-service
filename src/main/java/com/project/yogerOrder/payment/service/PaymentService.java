@@ -12,7 +12,6 @@ import com.project.yogerOrder.payment.exception.PaymentAlreadyExistException;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
-import com.project.yogerOrder.payment.util.pg.enums.PGState;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
 import com.project.yogerOrder.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +48,7 @@ public class PaymentService {
 
         PGPaymentInformResponseDTO pgInform = pgClientService.getInformById(verifyPaymentRequestDTO.impUid()); // 외부
         // 결제된 상태가 아니면 환불 X
-        if (pgInform.status() != PGState.PAID) throw new InvalidPaymentRequestException();
+        if (!pgInform.isPaid()) throw new InvalidPaymentRequestException();
 
         OrderEntity orderEntity = orderService.findById(Long.valueOf(pgInform.orderId())); // 내부
         Integer originalMaxPrice = productService.findById(orderEntity.getProductId()).originalMaxPrice(); // 외부
