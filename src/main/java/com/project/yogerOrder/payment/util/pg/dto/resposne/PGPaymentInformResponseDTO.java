@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record PGPaymentInformResponseDTO(@NotBlank String pgPaymentId,
                                          @NotBlank String orderId,
-                                         @NotBlank Integer amount,
+                                         @NotNull Integer amount,
                                          @NotNull PGState status) {
 
     public static PGPaymentInformResponseDTO from(Payment payment) {
