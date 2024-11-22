@@ -7,7 +7,8 @@ import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.exception.*;
+import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
+import com.project.yogerOrder.payment.exception.PaymentAlreadyExistException;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
@@ -77,27 +78,21 @@ public class PaymentService {
             int refundAmount = refundAmountPerQuantity * order.getQuantity();
             int checksum = payment.getAmount();
 
-            try {
-                if (!payment.isPayCompletable()) {
-                    throw new InvalidPaymentStateException();
-                }
-
-                if (!Objects.equals(payment.getAmount(), partialRefundRequestDTO.originalMaxPrice() * order.getQuantity()))
-                    throw new InvalidPaymentRequestException();
-
-                if (!payment.isPartialRefundable(refundAmount))
-                    throw new InvalidPaymentRequestException();
-
-                // 외부 API 장애에 따라 db state가 영향받지 않도록, 외부 API 호출이 완료되면 entity를 update하도록 작성
-                pgClientService.refund(new PGRefundRequestDTO(payment.getPgPaymentId(), checksum, refundAmount));
-                paymentTransactionService.refund(payment, refundAmount);
-            } catch (InvalidPaymentStateException e) {
+            if (!payment.isPayCompletable()) {
                 log.error("payment {} is in invalid state", payment.getId());
                 payment.updateToErrorState();
-            } catch (InvalidPaymentRefundException e) {
+                continue;
+            }
+            if (!Objects.equals(payment.getAmount(), partialRefundRequestDTO.originalMaxPrice() * order.getQuantity())
+                    || !payment.isPartialRefundable(refundAmount)) {
                 log.error("Failed to partial refund payment {} from PG", payment.getId());
                 payment.updateToErrorState();
+                continue;
             }
+
+            // 외부 API 장애에 따라 db state가 영향받지 않도록, 외부 API 호출이 완료되면 entity를 update하도록 작성
+            pgClientService.refund(new PGRefundRequestDTO(payment.getPgPaymentId(), checksum, refundAmount));
+            paymentTransactionService.refund(payment, refundAmount);
         }
     }
 }
