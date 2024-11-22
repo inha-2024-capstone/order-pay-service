@@ -125,7 +125,7 @@ class PaymentServiceTest {
 
     private static Stream<Arguments> verifyFailByStateSource() {
         return Arrays.stream(PGState.values())
-                .filter(state -> state != PGState.PAID)
+                .filter(state -> !state.isPaid())
                 .map(Arguments::of);
     }
 
