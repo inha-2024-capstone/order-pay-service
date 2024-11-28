@@ -41,10 +41,8 @@ dependencies {
 	// Util
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	// tsid
-	implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.6' //implementation 'com.github.f4b6a3:tsid-creator:5.1.0'
-	// custom yoger
-	implementation 'com.github.inha-2024-capstone:yoger-library:v0.2.0'
+ 	// custom yoger
+	implementation 'com.github.inha-2024-capstone:yoger-library:v0.3.0'
 
 	// Payment
 	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'

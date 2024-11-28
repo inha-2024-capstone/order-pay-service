@@ -9,7 +9,6 @@ import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
-import com.project.yogerOrder.payment.exception.PaymentAlreadyExistException;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
@@ -107,8 +106,14 @@ class PaymentServiceTest {
         // given
         given(paymentRepository.existsByPgPaymentId(requestDTO.impUid())).willReturn(true);
 
-        // when, then
-        assertThrows(PaymentAlreadyExistException.class, () -> paymentService.verifyPayment(requestDTO));
+        // when
+        paymentService.verifyPayment(requestDTO);
+        // then
+        verify(pgClientService, times(0)).getInformById(any());
+        verify(orderService, times(0)).findById(any());
+        verify(productService, times(0)).findById(any());
+        verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
+        verify(paymentTransactionService, times(0)).confirmPaymentAndOrder(any(ConfirmPaymentRequestDTO.class));
     }
 
     @ParameterizedTest

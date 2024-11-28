@@ -91,7 +91,7 @@ class OrderServiceTest {
         ReflectionTestUtils.setField(order, "createdTime", LocalDateTime.now().minusMinutes(pastMinutes));
 
         // when
-        Mockito.when(orderConfig.timeLimit()).thenReturn(5);
+        Mockito.when(orderConfig.validTime()).thenReturn(5);
         Boolean result = orderService.isPayable(order);
 
         // then
