@@ -68,6 +68,15 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+processResources {
+	def activeProfile = System.getProperty("spring.profiles.active", "")
+
+	if (activeProfile == "prod") {
+		exclude("application*.yml")
+		include("application-prod.yml")
+	}
+}
+
 bootBuildImage {
 	imageName = "yoger_order"
 }
