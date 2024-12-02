@@ -78,5 +78,5 @@ processResources {
 }
 
 bootBuildImage {
-	imageName = "yoger_order"
+	imageName = "sa20207/yoger_order:latest"
 }
