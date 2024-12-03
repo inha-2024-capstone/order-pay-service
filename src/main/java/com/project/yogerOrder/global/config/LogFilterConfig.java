@@ -12,7 +12,7 @@ public class LogFilterConfig {
     public FilterRegistrationBean<LogFilter> myCustomFilter() {
         FilterRegistrationBean<LogFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new LogFilter());
-        registrationBean.addUrlPatterns("/*");
+        registrationBean.addUrlPatterns("/api/*");
         registrationBean.setOrder(-101); // SecurityFilterChain보다 앞에 실행
         return registrationBean;
     }

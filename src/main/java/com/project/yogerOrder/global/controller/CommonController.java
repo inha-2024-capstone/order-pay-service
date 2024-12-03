@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CommonController {
 
-    @GetMapping("/health-check")
+    @GetMapping("/health")
     public String hello() {
         return "Yoger order Server is alive";
     }
