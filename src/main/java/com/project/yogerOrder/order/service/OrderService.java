@@ -2,6 +2,9 @@ package com.project.yogerOrder.order.service;
 
 import com.project.yogerOrder.order.config.OrderConfig;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
+import com.project.yogerOrder.order.dto.request.OrdersCountRequestDTO;
+import com.project.yogerOrder.order.dto.response.OrderCountResponseDTO;
+import com.project.yogerOrder.order.dto.response.OrderCountResponseDTOs;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
@@ -15,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -60,8 +65,15 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Integer countOrdersByProductId(Long productId) {
-        return orderRepository.countAllByProductIdAndState(productId, OrderState.APPROVED);
+    public OrderCountResponseDTOs countOrdersByProductIds(OrdersCountRequestDTO ordersCountRequestDTO) {
+        List<OrderCountResponseDTO> orderCountResponseDTOS = ordersCountRequestDTO.productIds().stream().map(productId ->
+                        new OrderCountResponseDTO(
+                                productId,
+                                orderRepository.countAllByProductIdAndState(productId, OrderState.APPROVED)
+                        )
+                ).toList();
+
+        return new OrderCountResponseDTOs(orderCountResponseDTOS);
     }
 
     // DELETE
