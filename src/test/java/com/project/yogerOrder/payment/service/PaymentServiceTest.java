@@ -4,6 +4,7 @@ import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
+import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTOs;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -175,19 +177,66 @@ class PaymentServiceTest {
     }
 
     @Test
-    void productExpirationSuccess() {
+    void productsExpirationSuccess() {
         // given
+        ArgumentCaptor<PGRefundRequestDTO> captor = ArgumentCaptor.forClass(PGRefundRequestDTO.class);
+
+        // 첫 번 째 상품
         List<PaymentOrderDTO> paymentOrderDTOs = List.of(paymentOrderDTO);
         given(paymentRepository.findAllPaymentAndOrderByProductId(productId)).willReturn(paymentOrderDTOs);
-        willDoNothing().given(pgClientService).refund(any());
-        willDoNothing().given(paymentTransactionService).refund(any(), anyInt());
-        PartialRefundRequestDTO partialRefundRequestDTO = new PartialRefundRequestDTO(productPrice, confirmedAmountPerQuantity);
+        PartialRefundRequestDTO partialRefundRequestDTO1 = new PartialRefundRequestDTO(productId, productPrice, confirmedAmountPerQuantity);
+
+
+        // 두 번 째 상품
+        Integer productPrice2 = productPrice + 1000;
+        Integer quantity2 = 3;
+        Integer quantity3 = 2;
+        Integer totalAmount2 = productPrice2 * quantity2;
+        Integer totalAmount3 = productPrice2 * quantity3;
+
+        Integer confirmedAmountPerQuantity2 = (int) (productPrice2 * 0.9);
+        Integer refundAmountPerQuantity2 = productPrice2 - confirmedAmountPerQuantity2;
+        Integer refundAmount2 = refundAmountPerQuantity2 * quantity2;
+        Integer refundAmount3 = refundAmountPerQuantity2 * quantity3;
+
+
+        Long productId2 = 2L;
+        Long orderId2 = 22L;
+        String impUid2 = impUid + "pay2";
+        OrderEntity orderEntity2 = OrderEntity.createPendingOrder(productId2, quantity2, 2L);
+        ReflectionTestUtils.setField(orderEntity2, "id", orderId2);
+        PaymentEntity paymentEntity2 = PaymentEntity.createTempPaidPayment(impUid2, orderId2, totalAmount2, 2L);
+
+        Long orderId3 = 333L;
+        String impUid3 = impUid + "pay3";
+        OrderEntity orderEntity3 = OrderEntity.createPendingOrder(productId2, quantity3, 2L);
+        ReflectionTestUtils.setField(orderEntity3, "id", orderId3);
+        PaymentEntity paymentEntity3 = PaymentEntity.createTempPaidPayment(impUid3, orderId3, totalAmount3, 2L);
+
+        List<PaymentOrderDTO> paymentOrderDTOs2 = List.of(new PaymentOrderDTO(paymentEntity2, orderEntity2), new PaymentOrderDTO(paymentEntity3, orderEntity3));
+        given(paymentRepository.findAllPaymentAndOrderByProductId(productId2)).willReturn(paymentOrderDTOs2);
+
+        PartialRefundRequestDTO partialRefundRequestDTO2 = new PartialRefundRequestDTO(productId2, productPrice2, confirmedAmountPerQuantity2);
+
+
+        // 첫 번 째 + 두 번 째 상품 종합
+        PartialRefundRequestDTOs partialRefundRequestDTOs = new PartialRefundRequestDTOs(List.of(partialRefundRequestDTO1, partialRefundRequestDTO2));
+
 
         // when
-        paymentService.productExpiration(productId, partialRefundRequestDTO);
+        paymentService.productsExpiration(partialRefundRequestDTOs);
 
         // then
-        verify(pgClientService, times(paymentOrderDTOs.size())).refund(new PGRefundRequestDTO(impUid, totalAmount, refundAmount));
-        verify(paymentTransactionService, times(paymentOrderDTOs.size())).refund(paymentEntity, refundAmount);
+        verify(pgClientService, times(3)).refund(captor.capture());
+
+        List<PGRefundRequestDTO> captoredArgs = captor.getAllValues();
+
+
+        assertTrue(captoredArgs.contains(new PGRefundRequestDTO(impUid, totalAmount, refundAmount)));
+        assertTrue(captoredArgs.contains(new PGRefundRequestDTO(impUid2, totalAmount2, refundAmount2)));
+        assertTrue(captoredArgs.contains(new PGRefundRequestDTO(impUid3, totalAmount3, refundAmount3)));
+
+
+        verify(paymentTransactionService, times(1)).refund(paymentEntity, refundAmount);
     }
 }
