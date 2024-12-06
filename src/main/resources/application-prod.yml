@@ -31,12 +31,6 @@ order:
     cron:
         expiration: '0 0/1 * * * *'
 
-
-cors:
-    allowedOriginPatterns: '*'
-    allowedHeaders: '*'
-    allowedMethods: '*'
-
 global:
     timeZone: 'Asia/Seoul'
 
