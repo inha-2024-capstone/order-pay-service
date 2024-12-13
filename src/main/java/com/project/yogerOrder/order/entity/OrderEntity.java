@@ -1,14 +1,10 @@
 package com.project.yogerOrder.order.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.library.yogerLibrary.tsid.CustomTsid;
 
 import java.time.LocalDateTime;
 
@@ -20,7 +16,7 @@ import java.time.LocalDateTime;
 public class OrderEntity extends BaseTimeEntity {
 
     @Id
-    @CustomTsid
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
