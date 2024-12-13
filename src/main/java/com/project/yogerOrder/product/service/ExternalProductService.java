@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-//TODO circuit breaker
 @Service
 public class ExternalProductService implements ProductService {
 
