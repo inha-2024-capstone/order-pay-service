@@ -16,6 +16,10 @@ spring:
             hibernate:
                 format_sql: true
 
+    threads:
+        virtual:
+            enabled: true
+
 portOne:
     v1:
         APIKey: ${V1_APIKEY}
@@ -27,7 +31,7 @@ product:
     url: "http://product-cluster:8080/api/products"
 
 order:
-    valid-time: 1
+    valid-time: 5
     cron:
         expiration: '0 0/1 * * * *'
 
