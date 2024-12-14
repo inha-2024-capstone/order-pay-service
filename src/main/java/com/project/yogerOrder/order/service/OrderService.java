@@ -76,13 +76,10 @@ public class OrderService {
         return new OrderCountResponseDTOs(orderCountResponseDTOS);
     }
 
-    // DELETE
-
-
     // UPDATE
     @Transactional
     public void updateStatusToPaidById(Long id) {
-        findById(id).setState(OrderState.APPROVED);
+        findById(id).approve();
     }
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
