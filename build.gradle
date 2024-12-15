@@ -35,13 +35,13 @@ dependencies {
 
 	// DB
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:9.+'
 
 	// Util
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
  	// custom yoger
-	implementation 'com.github.inha-2024-capstone:yoger-library:v0.3.0'
+	implementation 'com.github.inha-2024-capstone:yoger-library:v0.4.0'
 
 	// Payment
 	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
@@ -67,15 +67,6 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-processResources {
-	def activeProfile = System.getProperty("spring.profiles.active", "")
-
-	if (activeProfile == "prod") {
-		exclude("application*.yml")
-		include("application-prod.yml")
-	}
-}
-
 bootBuildImage {
-	imageName = "sa20207/yoger_order:latest"
+	imageName = "sa20207/yoger_order"
 }
