@@ -5,6 +5,7 @@ import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrdersCountRequestDTO;
 import com.project.yogerOrder.order.dto.response.OrderCountResponseDTO;
 import com.project.yogerOrder.order.dto.response.OrderCountResponseDTOs;
+import com.project.yogerOrder.order.dto.response.OrderResponseDTOs;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
@@ -72,6 +73,11 @@ public class OrderService {
                 ).toList();
 
         return new OrderCountResponseDTOs(orderCountResponseDTOS);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderResponseDTOs findApprovedOrdersByUserId(Long userId) {
+        return OrderResponseDTOs.from(orderRepository.findAllByBuyerIdAndState(userId, OrderState.APPROVED));
     }
 
     // UPDATE
