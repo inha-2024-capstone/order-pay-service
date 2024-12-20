@@ -1,6 +1,7 @@
 package com.project.yogerOrder.order.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
+import com.project.yogerOrder.order.exception.IllegalOrderStateUpdateException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -29,7 +30,6 @@ public class OrderEntity extends BaseTimeEntity {
     @NotNull
     private Long buyerId;
 
-    @Setter
     @NotNull
     @Enumerated(EnumType.STRING)
     private OrderState state;
@@ -49,5 +49,26 @@ public class OrderEntity extends BaseTimeEntity {
     public Boolean isPayable(Integer validTime) {
         return this.state == OrderState.PENDING
                 && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
+    }
+
+    public void approve() {
+        if (this.state != OrderState.PENDING) {
+            throw new IllegalOrderStateUpdateException();
+        }
+        this.state = OrderState.APPROVED;
+    }
+
+    public void reject() {
+        if (this.state != OrderState.PENDING) {
+            throw new IllegalOrderStateUpdateException();
+        }
+        this.state = OrderState.REJECTED;
+    }
+
+    public void error() {
+        if (this.state != OrderState.PENDING) {
+            throw new IllegalOrderStateUpdateException();
+        }
+        this.state = OrderState.ERROR;
     }
 }

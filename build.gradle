@@ -40,6 +40,9 @@ dependencies {
 	// Util
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	// Shedlock
+	implementation 'net.javacrumbs.shedlock:shedlock-spring:6.0.2'
+	implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.0.2'
  	// custom yoger
 	implementation 'com.github.inha-2024-capstone:yoger-library:v0.4.0'
 
