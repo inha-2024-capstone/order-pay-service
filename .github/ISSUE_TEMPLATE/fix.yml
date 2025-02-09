@@ -1,0 +1,31 @@
+name: Fix Template
+description: 수정 관련에 사용하는 템플릿
+title: "[Fix] Fix Title"
+projects: ["yoger's default project"]
+labels: ["fix"]
+
+body:
+    - type: textarea
+      id: bug-content
+      attributes:
+          label: 수정 작업 설명
+          description: 작업한 수정 사항에 대해 설명해주세요
+          placeholder: ex) 트랜잭션 적용 문제 수정
+      validations:
+          required: true
+    - type: input
+      id: related-issue
+      attributes:
+          label: 관련 Issue
+          description: 관련된 Issue가 있다면 적어주세요.
+          placeholder: "ex. #14"
+      validations:
+          required: false
+    - type: textarea
+      id: etc
+      attributes:
+          label: 기타 사항
+          description: 추가로 작성할 내용이 있다면 적어주세요.
+          placeholder: 레퍼런스 링크, ... etc
+      validations:
+          required: false
