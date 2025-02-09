@@ -55,4 +55,33 @@ public class KafkaConfig {
 
     }
 
+    @Configuration
+    @RequiredArgsConstructor
+    public static class KafkaProducerConfig {
+
+        private final KafkaProducerConfigValue configValue;
+
+        @ConfigurationProperties(prefix = "kafka.producer")
+        public record KafkaProducerConfigValue(@NotBlank String bootstrapServers, @NotNull Boolean enableIdempotence,
+                                               @NotNull String transactionIdPrefix) {
+        }
+
+        private HashMap<String, Object> producerConfig() {
+            HashMap<String, Object> config = new HashMap<>();
+            config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
+            config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+            config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, configValue.enableIdempotence);
+            config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, configValue.transactionIdPrefix);
+
+            return config;
+        }
+
+        @Bean
+        public KafkaTemplate<String, Object> OrderCreatedEventKafkaTemplate() {
+            return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerConfig()));
+        }
+
+    }
+
 }
