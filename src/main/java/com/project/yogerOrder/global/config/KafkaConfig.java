@@ -123,4 +123,14 @@ public class KafkaConfig {
 
     }
 
+    @Bean
+    public KafkaAdmin.NewTopics orderTopics() {
+        return new KafkaAdmin.NewTopics(
+                TopicBuilder.name(OrderTopic.CREATED).build(),
+                TopicBuilder.name(OrderTopic.COMPLETED).build(),
+                TopicBuilder.name(OrderTopic.CANCELED).build(),
+                TopicBuilder.name(OrderTopic.ERRORED).build()
+        );
+    }
+
 }
