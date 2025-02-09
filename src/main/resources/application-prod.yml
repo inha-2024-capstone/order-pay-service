@@ -59,7 +59,7 @@ kafka:
         enable-idempotence: true
         transaction-id-prefix: tx-
     consumer:
-        bootstrap-servers: kafka.confluent.svc.cluster.local:9092
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
         auto-offset-reset: earliest
         enable-auto-commit: false
         isolation-level: read_committed
