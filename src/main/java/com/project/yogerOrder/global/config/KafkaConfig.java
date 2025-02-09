@@ -84,4 +84,43 @@ public class KafkaConfig {
 
     }
 
+    @Configuration
+    @RequiredArgsConstructor
+    public static class KafkaConsumerConfig {
+
+        private final KafkaConsumerConfigValue configValue;
+
+        @ConfigurationProperties(prefix = "kafka.consumer")
+        public record KafkaConsumerConfigValue(@NotBlank String bootstrapServers, @NotBlank String isolationLevel,
+                                               @NotBlank String autoOffsetReset, @NotNull Boolean enableAutoCommit) {
+        }
+
+        private HashMap<String, Object> consumerConfig() {
+            HashMap<String, Object> config = new HashMap<>();
+            config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
+            config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configValue.autoOffsetReset);
+            config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, configValue.enableAutoCommit);
+            config.put(ConsumerConfig.GROUP_ID_CONFIG, "order-group");
+            config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+
+            return config;
+        }
+
+        @Bean("orderCanceledFactory")
+        public ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> orderpaymentCanceledEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, OrderCanceledEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                    consumerConfig(),
+                    new StringDeserializer(),
+                    new JsonDeserializer<>(OrderCanceledEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+    }
+
 }
