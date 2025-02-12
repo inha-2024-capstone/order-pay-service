@@ -108,7 +108,16 @@ public class KafkaConfig {
             return config;
         }
 
-        @Bean("orderCanceledFactory")
+        public static final String ORDER_CANCELED_FACTORY = "orderCanceledFactory";
+
+        public static final String DEDUCTION_COMPLETED_FACTORY = "productDeductionCompletedFactory";
+        public static final String DEDUCTION_FAILED_FACTORY = "productDeductionFailedFactory";
+
+        public static final String PAYMENT_COMPLETED_FACTORY = "paymentCompletedFactory";
+        public static final String PAYMENT_CANCELED_FACTORY = "paymentCanceledFactory";
+
+
+        @Bean(ORDER_CANCELED_FACTORY)
         public ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> orderpaymentCanceledEventConcurrentKafkaListenerContainerFactory() {
             ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
@@ -123,6 +132,66 @@ public class KafkaConfig {
             return factory;
         }
 
+        @Bean(DEDUCTION_COMPLETED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, ProductDeductionCompletedEvent> productDeductionCompletedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, ProductDeductionCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, ProductDeductionCompletedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                    consumerConfig(),
+                    new StringDeserializer(),
+                    new JsonDeserializer<>(ProductDeductionCompletedEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+        @Bean(DEDUCTION_FAILED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, ProductDeductionFailedEvent> productDeductionFailedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, ProductDeductionFailedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, ProductDeductionFailedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                    consumerConfig(),
+                    new StringDeserializer(),
+                    new JsonDeserializer<>(ProductDeductionFailedEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+
+        @Bean(PAYMENT_COMPLETED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> paymentCompletedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, PaymentCompletedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                    consumerConfig(),
+                    new StringDeserializer(),
+                    new JsonDeserializer<>(PaymentCompletedEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+        @Bean(PAYMENT_CANCELED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, PaymentCanceledEvent> paymentCanceledEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, PaymentCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, PaymentCanceledEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                    consumerConfig(),
+                    new StringDeserializer(),
+                    new JsonDeserializer<>(PaymentCanceledEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
     }
 
     @Bean
