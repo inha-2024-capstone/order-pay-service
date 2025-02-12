@@ -19,7 +19,7 @@ public class PaymentTransactionService {
 
     @Transactional
     public void confirmPaymentAndOrder(ConfirmPaymentRequestDTO confirmPaymentRequestDTO) {
-        orderService.updateStatusToPaidById(confirmPaymentRequestDTO.orderId());
+        orderService.updateByPaymentCompleted(confirmPaymentRequestDTO.orderId());
 
         PaymentEntity tempPayment = PaymentEntity.createTempPaidPayment(
                 confirmPaymentRequestDTO.pgPaymentId(),
