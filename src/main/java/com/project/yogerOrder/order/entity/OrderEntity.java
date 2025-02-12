@@ -43,32 +43,47 @@ public class OrderEntity extends BaseTimeEntity {
     }
 
     public static OrderEntity createPendingOrder(Long productId, Integer quantity, Long buyerId) {
-        return new OrderEntity(productId, quantity, buyerId, OrderState.PENDING);
+        return new OrderEntity(productId, quantity, buyerId, OrderState.CREATED);
     }
 
     public Boolean isPayable(Integer validTime) {
-        return this.state == OrderState.PENDING
+        return ((this.state == OrderState.CREATED) || (this.state == OrderState.STOCK_CONFIRMED))
                 && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
     }
 
-    public void approve() {
-        if (this.state != OrderState.PENDING) {
-            throw new IllegalOrderStateUpdateException();
-        }
-        this.state = OrderState.APPROVED;
+    public Boolean stockConfirmed() {
+        if (this.state == OrderState.STOCK_CONFIRMED || this.state == OrderState.COMPLETED) return false;
+        else if (this.state == OrderState.CREATED) this.state = OrderState.STOCK_CONFIRMED;
+        else if (this.state == OrderState.PAYMENT_COMPLETED) this.state = OrderState.COMPLETED;
+        else this.state = OrderState.ERROR;
+
+        return true;
     }
 
-    public void reject() {
-        if (this.state != OrderState.PENDING) {
-            throw new IllegalOrderStateUpdateException();
-        }
-        this.state = OrderState.REJECTED;
+    public Boolean paymentCompleted() {
+        if (this.state == OrderState.PAYMENT_COMPLETED || this.state == OrderState.COMPLETED) return false;
+        else if (this.state == OrderState.CREATED) this.state = OrderState.PAYMENT_COMPLETED;
+        else if (this.state == OrderState.STOCK_CONFIRMED) this.state = OrderState.COMPLETED;
+        else this.state = OrderState.ERROR;
+
+        return true;
     }
 
-    public void error() {
-        if (this.state != OrderState.PENDING) {
+    public Boolean cancel() {
+        if (this.state == OrderState.CANCELED) return false;
+        else if (this.state != OrderState.CREATED && this.state != OrderState.STOCK_CONFIRMED && this.state != OrderState.PAYMENT_COMPLETED) {
+            error();
             throw new IllegalOrderStateUpdateException();
         }
-        this.state = OrderState.ERROR;
+        this.state = OrderState.CANCELED;
+
+        return true;
+    }
+
+    public Boolean error() {
+        if (this.state == OrderState.ERROR) return false;
+        else this.state = OrderState.ERROR;
+
+        return true;
     }
 }
