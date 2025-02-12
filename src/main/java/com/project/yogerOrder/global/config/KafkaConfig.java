@@ -35,6 +35,8 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class KafkaConfig {
 
+    public static final String ORDER_GROUP = "order-group";
+
     @Configuration
     @RequiredArgsConstructor
     public static class KafkaAdminConfig {
@@ -100,7 +102,7 @@ public class KafkaConfig {
             config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
             config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configValue.autoOffsetReset);
             config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, configValue.enableAutoCommit);
-            config.put(ConsumerConfig.GROUP_ID_CONFIG, "order-group");
+            config.put(ConsumerConfig.GROUP_ID_CONFIG, ORDER_GROUP);
             config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
             return config;
@@ -130,6 +132,23 @@ public class KafkaConfig {
                 TopicBuilder.name(OrderTopic.COMPLETED).build(),
                 TopicBuilder.name(OrderTopic.CANCELED).build(),
                 TopicBuilder.name(OrderTopic.ERRORED).build()
+        );
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics paymentTopics() {
+        return new KafkaAdmin.NewTopics(
+                TopicBuilder.name(PaymentTopic.COMPLETED).build(),
+                TopicBuilder.name(PaymentTopic.CANCELED).build(),
+                TopicBuilder.name(PaymentTopic.ERRORED).build()
+        );
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics productTopics() {
+        return new KafkaAdmin.NewTopics(
+                TopicBuilder.name(ProductTopic.DEDUCTION_COMPLETED).build(),
+                TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build()
         );
     }
 
