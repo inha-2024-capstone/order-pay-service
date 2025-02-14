@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.yogerOrder.global.exception.CustomExceptionEnum;
 import com.project.yogerOrder.global.exception.ErrorResponse;
 import com.project.yogerOrder.global.exception.specific.NotHandledException;
-import com.project.yogerOrder.product.exception.ProductInsufficientException;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +29,7 @@ public class ProductClientErrorHandler implements ErrorHandler {
     @Override
     public void handle(@NotNull HttpRequest request, @NotNull ClientHttpResponse response) throws IOException {
         HttpStatusCode statusCode = response.getStatusCode();
-        if (statusCode.isSameCodeAs(HttpStatus.CONFLICT)) {
-            throw new ProductInsufficientException();
-        } else if (statusCode.isSameCodeAs(HttpStatus.NOT_FOUND)) {
+        if (statusCode.isSameCodeAs(HttpStatus.NOT_FOUND)) {
             throw new ProductNotFoundException();
         }
 

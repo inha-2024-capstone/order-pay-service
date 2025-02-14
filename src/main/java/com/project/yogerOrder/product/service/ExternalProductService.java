@@ -3,11 +3,10 @@ package com.project.yogerOrder.product.service;
 import com.project.yogerOrder.product.config.ProductConfig;
 import com.project.yogerOrder.product.dto.request.ChangeStockRequestDTO;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
-import com.project.yogerOrder.product.exception.ProductInsufficientException;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
-import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
 import com.project.yogerOrder.product.exception.ProductServerStateException;
+import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
+import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -43,7 +42,7 @@ public class ExternalProductService implements ProductService {
                 .body(ProductResponseDTO.class);
     }
 
-    private void changeStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException, ProductInsufficientException {
+    private void changeStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException {
         restClient.patch()
                 .uri("/{productId}/stock/change", productId)
                 .body(new ChangeStockRequestDTO(quantity))
@@ -52,7 +51,7 @@ public class ExternalProductService implements ProductService {
     }
 
     @Override
-    public void decreaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException, ProductInsufficientException {
+    public void decreaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException {
         changeStock(productId, -quantity);
     }
 
