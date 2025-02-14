@@ -1,11 +1,13 @@
 package com.project.yogerOrder.order.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
-import com.project.yogerOrder.order.exception.IllegalOrderStateUpdateException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -71,10 +73,8 @@ public class OrderEntity extends BaseTimeEntity {
 
     public Boolean cancel() {
         if (this.state == OrderState.CANCELED) return false;
-        else if (this.state != OrderState.CREATED && this.state != OrderState.STOCK_CONFIRMED && this.state != OrderState.PAYMENT_COMPLETED) {
-            error();
-            throw new IllegalOrderStateUpdateException();
-        }
+        else if (this.state != OrderState.CREATED && this.state != OrderState.STOCK_CONFIRMED && this.state != OrderState.PAYMENT_COMPLETED)
+            return error();
         this.state = OrderState.CANCELED;
 
         return true;
