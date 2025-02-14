@@ -1,7 +1,65 @@
 spring:
+    application:
+        name: yogerOrder
+
+    datasource:
+        url: jdbc:mysql://${DB_URL}:3306/${DB_NAME}?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+
     jpa:
+        #show-sql: true
         hibernate:
             ddl-auto: create
         properties:
             hibernate:
                 format_sql: true
+
+    threads:
+        virtual:
+            enabled: true
+
+portOne:
+    v1:
+        APIKey: ${V1_APIKEY}
+        APISecret: ${V1_APISECRET}
+    v2:
+        APISecret: ${V2_APISECRET}
+
+product:
+    url: "http://product-cluster:8080/api/products"
+
+order:
+    valid-time: 5
+    cron:
+        expiration: '0 0/1 * * * *'
+
+global:
+    timeZone: 'Asia/Seoul'
+
+logging:
+    level:
+        org.library.yogerLibrary.log: DEBUG
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: "*"
+    metrics:
+        enable:
+            jvm: true
+
+kafka:
+    admin:
+        bootstrap-servers: "localhost:9092"
+    producer:
+        bootstrap-servers: "localhost:9092"
+        enable-idempotence: true
+        transaction-id-prefix: tx-
+    consumer:
+        bootstrap-servers: "localhost:9092"
+        auto-offset-reset: earliest
+        enable-auto-commit: false
+        isolation-level: read_committed
