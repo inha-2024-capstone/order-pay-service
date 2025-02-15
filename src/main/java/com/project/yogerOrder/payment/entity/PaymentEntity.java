@@ -81,7 +81,7 @@ public class PaymentEntity extends BaseTimeEntity {
     public Boolean updateToCanceledState() {
         if (this.state == PaymentState.CANCELED) {
             return false;
-        } else if (this.state != PaymentState.TEMPORARY_PAID && this.state != PaymentState.PAID_END) {
+        } else if (this.state == PaymentState.TEMPORARY_PAID || this.state == PaymentState.PAID_END) {
             this.state = PaymentState.CANCELED;
 
             return true;
