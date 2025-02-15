@@ -8,6 +8,7 @@ import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTOs;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
+import com.project.yogerOrder.payment.event.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
@@ -59,6 +60,9 @@ class PaymentServiceTest {
 
     @Mock
     private ProductService productService;
+
+    @Mock
+    private PaymentEventProducer paymentEventProducer;
 
     private TestSource source1;
     private TestSource source2;
@@ -137,7 +141,7 @@ class PaymentServiceTest {
 
         // then
         verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
-        verify(paymentTransactionService).confirmPaymentAndOrder(captor.capture());
+        verify(paymentTransactionService).confirmPayment(captor.capture());
 
         ConfirmPaymentRequestDTO confirmPaymentRequestDTO = captor.getValue();
         assertEquals(confirmPaymentRequestDTO.pgPaymentId(), source1.pgInform.pgPaymentId());
@@ -159,7 +163,7 @@ class PaymentServiceTest {
         verify(orderService, times(0)).findById(any());
         verify(productService, times(0)).findById(any());
         verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
-        verify(paymentTransactionService, times(0)).confirmPaymentAndOrder(any(ConfirmPaymentRequestDTO.class));
+        verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
 
     @ParameterizedTest
@@ -169,15 +173,15 @@ class PaymentServiceTest {
         PGPaymentInformResponseDTO currentPGInform = new PGPaymentInformResponseDTO(source1.impUid, source1.merchantUid, source1.productPrice, pgState);
         given(paymentRepository.existsByPgPaymentId(any())).willReturn(false);
         given(pgClientService.getInformById(any())).willReturn(currentPGInform);
+        given(orderService.findById(source1.orderId)).willReturn(source1.orderEntity);
 
         // when
         paymentService.verifyPayment(source1.requestDTO);
 
         // then
-        verify(orderService, times(0)).findById(any());
         verify(productService, times(0)).findById(any());
         verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
-        verify(paymentTransactionService, times(0)).confirmPaymentAndOrder(any(ConfirmPaymentRequestDTO.class));
+        verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
 
     private static Stream<Arguments> verifyFailByStateSource() {
@@ -210,7 +214,7 @@ class PaymentServiceTest {
         Assertions.assertThat(captor.getValue().paymentId()).isEqualTo(source1.pgInform.pgPaymentId());
         Assertions.assertThat(captor.getValue().checksum()).isEqualTo(invalidPGInform.amount());
         Assertions.assertThat(captor.getValue().refundAmount()).isEqualTo(invalidPGInform.amount());
-        verify(paymentTransactionService, times(0)).confirmPaymentAndOrder(any(ConfirmPaymentRequestDTO.class));
+        verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
 
     @Test
