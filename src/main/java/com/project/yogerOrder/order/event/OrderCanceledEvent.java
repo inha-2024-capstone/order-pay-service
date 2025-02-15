@@ -17,7 +17,7 @@ public record OrderCanceledEvent(@NotNull Long orderId, @NotBlank String eventId
         return new OrderCanceledEvent(
                 orderEntity.getId(),
                 UUID.randomUUID().toString(),
-                com.project.yogerOrder.order.event.OrderEventType.CANCELED,
+                OrderEventType.CANCELED,
                 new OrderCanceledData(orderEntity.getBuyerId(), orderEntity.getProductId(), orderEntity.getQuantity()),
                 LocalDateTime.now()
         );
