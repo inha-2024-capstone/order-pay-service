@@ -39,7 +39,7 @@ public class PaymentEntity extends BaseTimeEntity {
     @Column(nullable = false, updatable = false)
     private Long userId;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentState state;
 
