@@ -24,14 +24,14 @@ public abstract class UsingTestContainerTest {
     private DBInitializer dbInitializer;
 
     @Container
-    protected static MySQLContainer MYSQL_CONTAINER = (MySQLContainer) new MySQLContainer("mysql:latest")
+    static final MySQLContainer MYSQL_CONTAINER = (MySQLContainer) new MySQLContainer("mysql:latest")
             .withDatabaseName("test")
             .withUsername(DB_USERNAME)
             .withPassword(DB_PASSWORD)
             .withCommand("--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci");
 
     @Container
-    protected static final KafkaContainer KAFKA_CONTAINER = new KafkaContainer(
+    static final KafkaContainer KAFKA_CONTAINER = new KafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:5.4.3")
     );
 
