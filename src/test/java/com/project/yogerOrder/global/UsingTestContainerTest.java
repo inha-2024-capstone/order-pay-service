@@ -33,7 +33,7 @@ public abstract class UsingTestContainerTest {
     @Container
     protected static final KafkaContainer KAFKA_CONTAINER = new KafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:5.4.3")
-    ).withReuse(true);
+    );
 
 
     @DynamicPropertySource
