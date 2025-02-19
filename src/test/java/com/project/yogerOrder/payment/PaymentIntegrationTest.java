@@ -52,26 +52,27 @@ public class PaymentIntegrationTest extends UsingTestContainerTest {
         Integer quantity = 2;
 
 
+        // payment entity 생성 후 저장
         PaymentEntity tempPaidPayment = PaymentEntity.createTempPaidPayment(impUid, orderId, amount, userId);
-        ReflectionTestUtils.setField(tempPaidPayment, "id", paymentId);
-
+        ReflectionTestUtils.setField(tempPaidPayment, "id", paymentId); // id 설정
         paymentRepository.save(tempPaidPayment);
 
+        // orderCanceledEvent 생성을 위한 order entity 생성 후 활용
         OrderEntity orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
-        ReflectionTestUtils.setField(orderEntity, "id", orderId);
+        ReflectionTestUtils.setField(orderEntity, "id", orderId); // id 설정
         OrderCanceledEvent orderCanceledEvent = OrderCanceledEvent.from(orderEntity);
 
 
         // when
         kafkaTemplate.executeInTransaction(kafkaTemplate -> {
-            kafkaTemplate.send(OrderTopic.CANCELED, orderCanceledEvent);
+            kafkaTemplate.send(OrderTopic.CANCELED, orderCanceledEvent); // orderCanceledEvent 발행
             return null;
         });
 
         await()
                 .pollInterval(Duration.ofSeconds(3))
                 .atMost(Duration.ofSeconds(30))
-                // then
+                // then payment state가 canceled로 변경되었는지 확인
                 .untilAsserted(() -> paymentRepository.findById(paymentId)
                         .ifPresentOrElse(
                                 paymentEntity -> Assertions.assertEquals(PaymentState.CANCELED, paymentEntity.getState()),
