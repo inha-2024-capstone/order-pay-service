@@ -17,7 +17,7 @@ public record OrderErroredEvent(@NotNull Long orderId, @NotBlank String eventId,
         return new OrderErroredEvent(
                 orderEntity.getId(),
                 UUID.randomUUID().toString(),
-                OrderEventType.ERROR,
+                OrderEventType.ERRORED,
                 new OrderErroredData(orderEntity.getBuyerId(), orderEntity.getProductId(), orderEntity.getQuantity()),
                 LocalDateTime.now()
         );
