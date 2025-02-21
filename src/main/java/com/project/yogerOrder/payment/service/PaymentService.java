@@ -53,15 +53,8 @@ public class PaymentService {
         OrderEntity orderEntity = orderService.findById(Long.valueOf(pgInform.orderId())); // 내부
         if (!pgInform.isPaid()) { // 결제된 상태가 아니면 환불 X
             log.error("PG payment {} is not paid state", pgInform.pgPaymentId());
-            PaymentEntity errorPayment = PaymentEntity.createCanceledPayment(
-                    pgInform.pgPaymentId(),
-                    Long.valueOf(pgInform.orderId()),
-                    pgInform.amount(),
-                    orderEntity.getBuyerId()
-            );
-            paymentRepository.save(errorPayment);
-
-            paymentEventProducer.sendEventByState(errorPayment);
+            PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
+            saveCanceledPayment(errorPayment, pgInform, false);
 
             return;
         }
@@ -69,17 +62,8 @@ public class PaymentService {
         // 결제 검증 = 금액, 상태
         if (!orderService.isPayable(orderEntity)) { // 내부
             log.debug("payment {} is not payable", pgInform.pgPaymentId());
-            PaymentEntity canceledPayment = PaymentEntity.createCanceledPayment(
-                    pgInform.pgPaymentId(),
-                    Long.valueOf(pgInform.orderId()),
-                    pgInform.amount(),
-                    orderEntity.getBuyerId()
-            );
-            paymentRepository.save(canceledPayment);
-
-            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount())); // 외부
-
-            paymentEventProducer.sendEventByState(canceledPayment);
+            PaymentEntity canceledPayment = cancelPaymentByValidation(orderEntity, pgInform);
+            saveCanceledPayment(canceledPayment, pgInform, true);
 
             return;
         }
@@ -87,17 +71,8 @@ public class PaymentService {
         Integer originalMaxPrice = productService.findById(orderEntity.getProductId()).originalMaxPrice();
         if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity())) { // 내부
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
-            PaymentEntity errorPayment = PaymentEntity.createErrorPayment(
-                    pgInform.pgPaymentId(),
-                    Long.valueOf(pgInform.orderId()),
-                    pgInform.amount(),
-                    orderEntity.getBuyerId()
-            );
-            paymentRepository.save(errorPayment);
-
-            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount())); // 외부
-
-            paymentEventProducer.sendEventByState(errorPayment);
+            PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
+            saveCanceledPayment(errorPayment, pgInform, false);
 
             return;
         }
@@ -108,6 +83,33 @@ public class PaymentService {
                 orderEntity.getBuyerId(),
                 pgInform.amount()
         ));
+    }
+
+    private PaymentEntity cancelPaymentByError(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
+        return PaymentEntity.createErrorPayment(
+                pgInform.pgPaymentId(),
+                Long.valueOf(pgInform.orderId()),
+                pgInform.amount(),
+                orderEntity.getBuyerId()
+        );
+    }
+
+    private PaymentEntity cancelPaymentByValidation(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
+        return PaymentEntity.createCanceledPayment(
+                pgInform.pgPaymentId(),
+                Long.valueOf(pgInform.orderId()),
+                pgInform.amount(),
+                orderEntity.getBuyerId()
+        );
+    }
+
+    private void saveCanceledPayment(PaymentEntity paymentEntity, PGPaymentInformResponseDTO pgInform,
+                                     Boolean isRefund) {
+        paymentRepository.save(paymentEntity);
+
+        if (isRefund) pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
+
+        paymentEventProducer.sendEventByState(paymentEntity);
     }
 
     @Transactional
