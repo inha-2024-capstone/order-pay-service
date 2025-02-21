@@ -39,7 +39,7 @@ public class PaymentEntity extends BaseTimeEntity {
     @Column(nullable = false, updatable = false)
     private Long userId;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentState state;
 
@@ -49,6 +49,18 @@ public class PaymentEntity extends BaseTimeEntity {
         this.amount = amount;
         this.userId = userId;
         this.state = state;
+    }
+
+    public static PaymentEntity createTempPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.TEMPORARY_PAID);
+    }
+
+    public static PaymentEntity createCanceledPayment(String impUid, Long orderId, Integer amount, Long userId) {
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.CANCELED);
+    }
+
+    public static PaymentEntity createErrorPayment(String impUid, Long orderId, Integer amount, Long userId) {
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERROR);
     }
 
     public Boolean isPartialRefundable(Integer refundAmount) {
@@ -62,15 +74,27 @@ public class PaymentEntity extends BaseTimeEntity {
         this.refundedAmount = refundAmount;
     }
 
-    public static PaymentEntity createTempPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
-        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.TEMPORARY_PAID);
-    }
-
     public boolean isPayCompletable() {
         return this.state == PaymentState.TEMPORARY_PAID;
     }
 
-    public void updateToErrorState() {
+    public Boolean updateToCanceledState() {
+        if (this.state == PaymentState.CANCELED) {
+            return false;
+        } else if (this.state == PaymentState.TEMPORARY_PAID || this.state == PaymentState.PAID_END) {
+            this.state = PaymentState.CANCELED;
+
+            return true;
+        } else {
+            throw new IllegalStateException("This payment is not cancelable");
+        }
+    }
+
+    public Boolean updateToErrorState() {
+        if (this.state == PaymentState.ERROR) return false;
+
         this.state = PaymentState.ERROR;
+
+        return true;
     }
 }
