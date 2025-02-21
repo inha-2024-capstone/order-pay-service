@@ -167,6 +167,8 @@ public class KafkaConfig {
                 TopicBuilder.name(OrderTopic.CREATED).build(),
                 TopicBuilder.name(OrderTopic.COMPLETED).build(),
                 TopicBuilder.name(OrderTopic.CANCELED).build(),
+                TopicBuilder.name(OrderTopic.DEDUCTION_AFTER_CANCELED).build(),
+                TopicBuilder.name(OrderTopic.PAYMENT_COMPLETED_AFTER_CANCELED).build(),
                 TopicBuilder.name(OrderTopic.ERRORED).build()
         );
     }

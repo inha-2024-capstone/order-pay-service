@@ -48,4 +48,18 @@ public class OrderEventProducer {
     private void publishOrderErroredEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(OrderEventType.ERRORED, OrderErroredEvent.from(orderEntity));
     }
+
+    public void sendOrderDeductionAfterCanceledEvent(OrderEntity orderEntity) {
+        orderOutboxService.saveOutbox(
+                OrderEventType.DEDUCTION_AFTER_CANCELED,
+                DeductionAfterOrderCanceledEvent.from(orderEntity)
+        );
+    }
+
+    public void sendPaymentCompletedAfterOrderCanceledEvent(OrderEntity orderEntity) {
+        orderOutboxService.saveOutbox(
+                OrderEventType.PAYMENT_COMPLETED_AFTER_CANCELED,
+                PaymentCompletedAfterOrderCanceledEvent.from(orderEntity)
+        );
+    }
 }
