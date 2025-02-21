@@ -57,7 +57,7 @@ public class OrderEntity extends BaseTimeEntity {
         if (this.state == OrderState.STOCK_CONFIRMED || this.state == OrderState.COMPLETED) return false;
         else if (this.state == OrderState.CREATED) this.state = OrderState.STOCK_CONFIRMED;
         else if (this.state == OrderState.PAYMENT_COMPLETED) this.state = OrderState.COMPLETED;
-        else this.state = OrderState.ERROR;
+        else this.state = OrderState.ERRORED;
 
         return true;
     }
@@ -66,7 +66,7 @@ public class OrderEntity extends BaseTimeEntity {
         if (this.state == OrderState.PAYMENT_COMPLETED || this.state == OrderState.COMPLETED) return false;
         else if (this.state == OrderState.CREATED) this.state = OrderState.PAYMENT_COMPLETED;
         else if (this.state == OrderState.STOCK_CONFIRMED) this.state = OrderState.COMPLETED;
-        else this.state = OrderState.ERROR;
+        else this.state = OrderState.ERRORED;
 
         return true;
     }
@@ -81,8 +81,8 @@ public class OrderEntity extends BaseTimeEntity {
     }
 
     public Boolean error() {
-        if (this.state == OrderState.ERROR) return false;
-        else this.state = OrderState.ERROR;
+        if (this.state == OrderState.ERRORED) return false;
+        else this.state = OrderState.ERRORED;
 
         return true;
     }

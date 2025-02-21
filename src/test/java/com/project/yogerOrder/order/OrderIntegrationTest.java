@@ -165,7 +165,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
                         OrderState.COMPLETED,
                         deductionFailedEvent,
                         ProductTopic.DEDUCTION_FAILED,
-                        OrderState.ERROR
+                        OrderState.ERRORED
                 ),
                 Arguments.of(
                         OrderState.COMPLETED,
@@ -177,7 +177,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
                         OrderState.COMPLETED,
                         paymentFailedEvent,
                         PaymentTopic.CANCELED,
-                        OrderState.ERROR
+                        OrderState.ERRORED
                 )
         );
     }

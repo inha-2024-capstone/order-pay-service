@@ -83,7 +83,7 @@ class OrderServiceTest {
     private static Stream<Arguments> isPayableSource() {
         return Stream.of(
                 Arguments.of(OrderState.CREATED, 4, true),
-                Arguments.of(OrderState.ERROR, 4, false),
+                Arguments.of(OrderState.ERRORED, 4, false),
                 Arguments.of(OrderState.CANCELED, 4, false),
                 Arguments.of(OrderState.COMPLETED, 4, false),
                 Arguments.of(OrderState.CREATED, 6, false)
