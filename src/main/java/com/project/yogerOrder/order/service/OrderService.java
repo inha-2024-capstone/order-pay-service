@@ -39,7 +39,7 @@ public class OrderService {
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
 
         return orderEntity.getId();
     }
@@ -83,7 +83,7 @@ public class OrderService {
         }
         orderRepository.save(orderEntity);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
     }
 
     @Transactional
@@ -96,7 +96,7 @@ public class OrderService {
         }
         orderRepository.save(orderEntity);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
     }
 
     @Transactional
@@ -109,7 +109,7 @@ public class OrderService {
         }
         orderRepository.save(orderEntity);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
     }
 
     @Transactional
@@ -122,7 +122,7 @@ public class OrderService {
         }
         orderRepository.save(orderEntity);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
     }
 
     @Transactional
@@ -134,7 +134,7 @@ public class OrderService {
         }
         orderRepository.save(orderEntity);
 
-        orderEventProducer.sendEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity);
     }
 
 

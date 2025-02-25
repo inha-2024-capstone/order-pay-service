@@ -13,32 +13,32 @@ public class OrderEventProducer {
     private final OrderOutboxService orderOutboxService;
 
 
-    public void sendEventByState(OrderEntity orderEntity) {
-        if (orderEntity.getState() == OrderState.COMPLETED) {
-            sendOrderCompletedEvent(orderEntity);
-        } else if (orderEntity.getState() == OrderState.CREATED) {
-            sendOrderCreatedEvent(orderEntity);
-        } else if (orderEntity.getState() == OrderState.CANCELED) {
-            sendOrderCanceledEvent(orderEntity);
+    public void publishEventByState(OrderEntity orderEntity) {
+        if (orderEntity.getState() == OrderState.CREATED) {
+            publishOrderCreatedEvent(orderEntity);
+        } else if (orderEntity.getState() == OrderState.COMPLETED) {
+            publishOrderCompletedEvent(orderEntity);
+        }  else if (orderEntity.getState() == OrderState.CANCELED) {
+            publishOrderCanceledEvent(orderEntity);
         } else if (orderEntity.getState() == OrderState.ERROR) {
-            sendOrderCanceledEvent(orderEntity);
-            sendOrderErroredEvent(orderEntity);
+            publishOrderCanceledEvent(orderEntity);
+            publishOrderErroredEvent(orderEntity);
         }
     }
 
-    private void sendOrderCreatedEvent(OrderEntity orderEntity) {
+    private void publishOrderCreatedEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(OrderEventType.CREATED, OrderCreatedEvent.from(orderEntity));
     }
 
-    private void sendOrderCanceledEvent(OrderEntity orderEntity) {
-        orderOutboxService.saveOutbox(OrderEventType.CANCELED, OrderCanceledEvent.from(orderEntity));
-    }
-
-    private void sendOrderCompletedEvent(OrderEntity orderEntity) {
+    private void publishOrderCompletedEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(OrderEventType.COMPLETED, OrderCompletedEvent.from(orderEntity));
     }
 
-    private void sendOrderErroredEvent(OrderEntity orderEntity) {
+    private void publishOrderCanceledEvent(OrderEntity orderEntity) {
+        orderOutboxService.saveOutbox(OrderEventType.CANCELED, OrderCanceledEvent.from(orderEntity));
+    }
+
+    private void publishOrderErroredEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(OrderEventType.ERRORED, OrderErroredEvent.from(orderEntity));
     }
 }
