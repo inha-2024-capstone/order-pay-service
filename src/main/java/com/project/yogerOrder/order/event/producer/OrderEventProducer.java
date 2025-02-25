@@ -17,6 +17,10 @@ public class OrderEventProducer {
     public void publishEventByState(OrderEntity orderEntity) {
         if (orderEntity.getState() == OrderState.CREATED) {
             publishOrderCreatedEvent(orderEntity);
+        } else if (orderEntity.getState() == OrderState.STOCK_CONFIRMED) {
+            // stock confirmed event ignored
+        } else if (orderEntity.getState() == OrderState.PAYMENT_COMPLETED) {
+            // payment completed event ignored
         } else if (orderEntity.getState() == OrderState.COMPLETED) {
             publishOrderCompletedEvent(orderEntity);
         }  else if (orderEntity.getState() == OrderState.CANCELED) {
