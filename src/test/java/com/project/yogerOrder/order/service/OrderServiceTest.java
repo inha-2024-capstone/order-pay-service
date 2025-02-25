@@ -4,7 +4,7 @@ import com.project.yogerOrder.order.config.OrderConfig;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
-import com.project.yogerOrder.order.event.OrderEventProducer;
+import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

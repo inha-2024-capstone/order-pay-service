@@ -54,10 +54,6 @@ management:
 kafka:
     admin:
         bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
-    producer:
-        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
-        enable-idempotence: true
-        transaction-id-prefix: tx-
     consumer:
         bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
         auto-offset-reset: earliest

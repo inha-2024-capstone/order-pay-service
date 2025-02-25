@@ -1,5 +1,5 @@
 package com.project.yogerOrder.order.event;
 
 public enum OrderEventType {
-    CREATED, COMPLETED, CANCELED, ERROR
+    CREATED, COMPLETED, CANCELED, ERRORED
 }

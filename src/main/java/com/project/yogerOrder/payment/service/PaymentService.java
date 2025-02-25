@@ -8,7 +8,7 @@ import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTOs;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.event.PaymentEventProducer;
+import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
@@ -109,7 +109,7 @@ public class PaymentService {
 
         if (isRefund) pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
 
-        paymentEventProducer.sendEventByState(paymentEntity);
+        paymentEventProducer.publishEventByState(paymentEntity);
     }
 
     @Transactional
@@ -124,7 +124,7 @@ public class PaymentService {
 
             pgClientService.refund(new PGRefundRequestDTO(paymentEntity.getPgPaymentId(), paymentEntity.getAmount()));
 
-            paymentEventProducer.sendEventByState(paymentEntity);
+            paymentEventProducer.publishEventByState(paymentEntity);
         });
     }
 
@@ -168,6 +168,6 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        paymentEventProducer.sendEventByState(payment);
+        paymentEventProducer.publishEventByState(payment);
     }
 }

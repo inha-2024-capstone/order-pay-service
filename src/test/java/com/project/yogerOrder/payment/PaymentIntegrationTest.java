@@ -7,7 +7,7 @@ import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.entity.PaymentState;
-import com.project.yogerOrder.payment.event.PaymentEventProducer;
+import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
 import org.junit.jupiter.api.Assertions;
