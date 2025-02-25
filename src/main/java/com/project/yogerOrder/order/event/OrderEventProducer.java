@@ -24,6 +24,8 @@ public class OrderEventProducer {
             publishOrderCanceledEvent(orderEntity);
             publishOrderErroredEvent(orderEntity);
         }
+
+        throw new IllegalArgumentException("Invalid Order State" + orderEntity.getState());
     }
 
     private void publishOrderCreatedEvent(OrderEntity orderEntity) {
