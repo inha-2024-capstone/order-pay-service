@@ -27,7 +27,7 @@ public class PaymentTransactionService {
         );
         paymentRepository.save(tempPayment);
 
-        paymentEventProducer.sendEventByState(tempPayment);
+        paymentEventProducer.publishEventByState(tempPayment);
     }
 
     @Transactional
@@ -35,6 +35,6 @@ public class PaymentTransactionService {
         paymentEntity.partialRefund(refundAmount);
         paymentRepository.save(paymentEntity);
 
-        paymentEventProducer.sendEventByState(paymentEntity);
+        paymentEventProducer.publishEventByState(paymentEntity);
     }
 }

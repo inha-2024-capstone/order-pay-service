@@ -109,7 +109,7 @@ public class PaymentService {
 
         if (isRefund) pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
 
-        paymentEventProducer.sendEventByState(paymentEntity);
+        paymentEventProducer.publishEventByState(paymentEntity);
     }
 
     @Transactional
@@ -124,7 +124,7 @@ public class PaymentService {
 
             pgClientService.refund(new PGRefundRequestDTO(paymentEntity.getPgPaymentId(), paymentEntity.getAmount()));
 
-            paymentEventProducer.sendEventByState(paymentEntity);
+            paymentEventProducer.publishEventByState(paymentEntity);
         });
     }
 
@@ -168,6 +168,6 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        paymentEventProducer.sendEventByState(payment);
+        paymentEventProducer.publishEventByState(payment);
     }
 }

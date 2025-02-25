@@ -15,30 +15,30 @@ public class PaymentEventProducer {
 
     private final PaymentOutboxService paymentOutboxService;
 
-    public void sendEventByState(PaymentEntity paymentEntity) {
+    public void publishEventByState(PaymentEntity paymentEntity) {
         if (paymentEntity.getState() == PaymentState.TEMPORARY_PAID) {
             // temporary paid payment is ignored
         } else if (paymentEntity.getState() == PaymentState.PAID_END) {
-            sendPaymentCompletedEvent(paymentEntity);
+            publishPaymentCompletedEvent(paymentEntity);
         } else if (paymentEntity.getState() == PaymentState.CANCELED) {
-            sendPaymentCanceledEvent(paymentEntity);
+            publishPaymentCanceledEvent(paymentEntity);
         } else if (paymentEntity.getState() == PaymentState.ERROR) {
-            sendPaymentCanceledEvent(paymentEntity);
-            sendPaymentErroredEvent(paymentEntity);
+            publishPaymentCanceledEvent(paymentEntity);
+            publishPaymentErroredEvent(paymentEntity);
         }
 
         throw new IllegalArgumentException("Invalid payment state: " + paymentEntity.getState());
     }
 
-    private void sendPaymentCompletedEvent(PaymentEntity paymentEntity) {
+    private void publishPaymentCompletedEvent(PaymentEntity paymentEntity) {
         paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentCompletedEvent.from(paymentEntity));
     }
 
-    private void sendPaymentCanceledEvent(PaymentEntity paymentEntity) {
+    private void publishPaymentCanceledEvent(PaymentEntity paymentEntity) {
         paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentCanceledEvent.from(paymentEntity));
     }
 
-    private void sendPaymentErroredEvent(PaymentEntity paymentEntity) {
+    private void publishPaymentErroredEvent(PaymentEntity paymentEntity) {
         paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentErroredEvent.from(paymentEntity));
     }
 
