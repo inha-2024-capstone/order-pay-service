@@ -15,7 +15,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @ActiveProfiles("test")
-@Import(DBInitializer.class)
+@Import({DBInitializer.class, KafkaTestConfig.class})
 public abstract class UsingTestContainerTest {
     private static final String DB_USERNAME = "root";
     private static final String DB_PASSWORD = "1234";
