@@ -36,6 +36,7 @@ import java.util.HashMap;
 public class KafkaConfig {
 
     public static final String ORDER_GROUP = "order-group";
+    public static final String PAYMENT_GROUP = "payment-group";
 
     @Configuration
     @RequiredArgsConstructor
