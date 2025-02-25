@@ -40,7 +40,7 @@ public class OrderService {
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
 
-        orderEventProducer.publishEventByState(orderEntity);
+        orderEventProducer.publishOrderCreatedEvent(orderEntity);
 
         return orderEntity.getId();
     }
@@ -79,7 +79,7 @@ public class OrderService {
         OrderEntity orderEntity = findById(orderId);
 
         if (orderEntity.getState() == OrderState.CANCELED) {
-            orderEventProducer.publishEventByState(orderEntity);
+            orderEventProducer.publishOrderDeductionAfterCanceledEvent(orderEntity);
             return;
         }
 
@@ -96,7 +96,7 @@ public class OrderService {
         OrderEntity orderEntity = findById(orderId);
 
         if (orderEntity.getState() == OrderState.CANCELED) {
-            orderEventProducer.publishEventByState(orderEntity);
+            orderEventProducer.publishPaymentCompletedAfterOrderCanceledEvent(orderEntity);
             return;
         }
 
@@ -129,6 +129,7 @@ public class OrderService {
     }
 
     private void updateByStateChange(OrderEntity orderEntity, OrderStateChangeEvent orderStateChangeEvent) {
+        OrderState beforeState = orderEntity.getState();
         if (!orderEntity.changeStateIfChangeable(orderStateChangeEvent)) {
             log.debug("Order is already in the target state. orderId: {}", orderEntity.getId());
             return;
@@ -136,6 +137,6 @@ public class OrderService {
 
         orderRepository.save(orderEntity);
 
-        orderEventProducer.publishEventByState(orderEntity);
+        orderEventProducer.publishEventByState(orderEntity, beforeState);
     }
 }
