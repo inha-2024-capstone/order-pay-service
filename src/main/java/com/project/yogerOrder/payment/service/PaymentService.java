@@ -10,6 +10,7 @@ import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStateChangeEvent;
 import com.project.yogerOrder.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,7 +111,7 @@ public class PaymentService {
     @Transactional
     public void orderCanceled(Long orderId) {
         paymentRepository.findByOrderId(orderId).ifPresent(paymentEntity -> {
-            Boolean isUpdated = paymentEntity.updateToCanceledState();
+            Boolean isUpdated = paymentEntity.changeStateIfChangeable(PaymentStateChangeEvent.ORDER_CANCELED);
             if (!isUpdated) {
                 log.debug("payment {} is already canceled", paymentEntity.getId());
                 return;

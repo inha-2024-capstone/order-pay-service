@@ -29,12 +29,4 @@ public class PaymentTransactionService {
 
         paymentEventProducer.publishEventByState(paymentEntity);
     }
-
-    @Transactional
-    public void refund(PaymentEntity paymentEntity, Integer refundAmount) {
-        paymentEntity.refund(refundAmount);
-        paymentRepository.save(paymentEntity);
-
-        paymentEventProducer.publishEventByState(paymentEntity);
-    }
 }

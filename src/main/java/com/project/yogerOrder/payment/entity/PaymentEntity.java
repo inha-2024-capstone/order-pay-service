@@ -1,6 +1,8 @@
 package com.project.yogerOrder.payment.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStateChangeEvent;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStaticStateMachine;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -74,23 +76,11 @@ public class PaymentEntity extends BaseTimeEntity {
         this.refundedAmount = refundAmount;
     }
 
-    public Boolean updateToCanceledState() {
-        if (this.state == PaymentState.CANCELED) {
-            return false;
-        } else if (this.state == PaymentState.PAID) {
-            this.state = PaymentState.CANCELED;
+    public Boolean changeStateIfChangeable(PaymentStateChangeEvent paymentStateChangeEvent) {
+        PaymentState nextState = PaymentStaticStateMachine.nextState(this.state, paymentStateChangeEvent);
+        boolean isChanged = (this.state != nextState);
+        this.state = nextState;
 
-            return true;
-        } else {
-            throw new IllegalStateException("This payment is not cancelable");
-        }
-    }
-
-    public Boolean updateToErrorState() {
-        if (this.state == PaymentState.ERRORED) return false;
-
-        this.state = PaymentState.ERRORED;
-
-        return true;
+        return isChanged;
     }
 }
