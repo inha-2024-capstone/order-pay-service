@@ -51,8 +51,8 @@ public class PaymentEntity extends BaseTimeEntity {
         this.state = state;
     }
 
-    public static PaymentEntity createTempPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
-        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.TEMPORARY_PAID);
+    public static PaymentEntity createPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.PAID);
     }
 
     public static PaymentEntity createCanceledPayment(String impUid, Long orderId, Integer amount, Long userId) {
@@ -64,24 +64,20 @@ public class PaymentEntity extends BaseTimeEntity {
     }
 
     public Boolean isPartialRefundable(Integer refundAmount) {
-        return (refundAmount < this.amount) && (this.refundedAmount == 0) && (this.state == PaymentState.TEMPORARY_PAID);
+        return (refundAmount < this.amount) && (this.refundedAmount == 0) && (this.state == PaymentState.PAID);
     }
 
-    public void partialRefund(Integer refundAmount) {
+    public void refund(Integer refundAmount) {
         if (!isPartialRefundable(refundAmount)) throw new IllegalStateException("This payment is not refundable");
 
-        this.state = PaymentState.PAID_END;
+        this.state = PaymentState.CANCELED;
         this.refundedAmount = refundAmount;
-    }
-
-    public boolean isPayCompletable() {
-        return this.state == PaymentState.TEMPORARY_PAID;
     }
 
     public Boolean updateToCanceledState() {
         if (this.state == PaymentState.CANCELED) {
             return false;
-        } else if (this.state == PaymentState.TEMPORARY_PAID || this.state == PaymentState.PAID_END) {
+        } else if (this.state == PaymentState.PAID) {
             this.state = PaymentState.CANCELED;
 
             return true;

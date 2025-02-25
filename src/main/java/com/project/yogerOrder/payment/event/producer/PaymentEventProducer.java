@@ -20,9 +20,7 @@ public class PaymentEventProducer {
     private final PaymentOutboxService paymentOutboxService;
 
     public void publishEventByState(PaymentEntity paymentEntity) {
-        if (paymentEntity.getState() == PaymentState.TEMPORARY_PAID) {
-            // temporary paid payment is ignored
-        } else if (paymentEntity.getState() == PaymentState.PAID_END) {
+        if (paymentEntity.getState() == PaymentState.PAID) {
             publishPaymentCompletedEvent(paymentEntity);
         } else if (paymentEntity.getState() == PaymentState.CANCELED) {
             publishPaymentCanceledEvent(paymentEntity);

@@ -3,8 +3,6 @@ package com.project.yogerOrder.payment.service;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
-import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTOs;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
@@ -35,7 +33,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -65,8 +62,6 @@ class PaymentServiceTest {
     private PaymentEventProducer paymentEventProducer;
 
     private TestSource source1;
-    private TestSource source2;
-    private TestSource source3;
 
     private static class TestSource {
         String impUid;
@@ -85,7 +80,6 @@ class PaymentServiceTest {
         VerifyPaymentRequestDTO requestDTO;
         PGPaymentInformResponseDTO pgInform;
         ProductResponseDTO productResponseDTO;
-        PaymentEntity paymentEntity;
         OrderEntity orderEntity;
         PaymentOrderDTO paymentOrderDTO;
 
@@ -109,9 +103,9 @@ class PaymentServiceTest {
             PriceByQuantity priceByQuantity1 = new PriceByQuantity(3, productPrice);
             PriceByQuantity priceByQuantity2 = new PriceByQuantity(10, (int) (productPrice * 0.9));
             this.productResponseDTO = new ProductResponseDTO(productId, List.of(priceByQuantity1, priceByQuantity2));
-            this.paymentEntity = PaymentEntity.createTempPaidPayment(impUid, orderId, totalAmount, userId);
             this.orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
             ReflectionTestUtils.setField(orderEntity, "id", orderId);
+            PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(impUid, orderId, totalAmount, userId);
             this.paymentOrderDTO = new PaymentOrderDTO(paymentEntity, orderEntity);
         }
     }
@@ -120,8 +114,6 @@ class PaymentServiceTest {
     @BeforeEach
     void beforeEach() {
         this.source1 = new TestSource("impUid1", "123456", 10000, 2, 11L, 111L);
-        this.source2 = new TestSource("impUid2", "654321", 3000, 5, 22L, 222L);
-        this.source3 = new TestSource("impUid3", "321456", 3000, 5, 22L, 222L);
     }
 
 
@@ -215,48 +207,5 @@ class PaymentServiceTest {
         Assertions.assertThat(captor.getValue().checksum()).isEqualTo(invalidPGInform.amount());
         Assertions.assertThat(captor.getValue().refundAmount()).isEqualTo(invalidPGInform.amount());
         verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
-    }
-
-    @Test
-    void productsExpirationSuccess() {
-        // given
-        ArgumentCaptor<PGRefundRequestDTO> captor = ArgumentCaptor.forClass(PGRefundRequestDTO.class);
-
-        // 첫 번 째 상품
-        given(paymentRepository.findAllPaymentAndOrderByProductId(source1.productId)).willReturn(List.of(source1.paymentOrderDTO));
-        PartialRefundRequestDTO partialRefundRequestDTO1 = new PartialRefundRequestDTO(source1.productId, source1.productPrice, source1.confirmedAmountPerQuantity);
-
-        // 두 번 째 상품
-        given(paymentRepository.findAllPaymentAndOrderByProductId(source2.productId)).willReturn(List.of(source2.paymentOrderDTO, source3.paymentOrderDTO));
-        PartialRefundRequestDTO partialRefundRequestDTO2 = new PartialRefundRequestDTO(source2.productId, source2.productPrice, source2.confirmedAmountPerQuantity);
-
-        // 첫 번 째 + 두 번 째 상품 종합
-        PartialRefundRequestDTOs partialRefundRequestDTOs = new PartialRefundRequestDTOs(List.of(partialRefundRequestDTO1, partialRefundRequestDTO2));
-
-
-        // when
-        paymentService.productsExpiration(partialRefundRequestDTOs);
-
-        // then
-        verify(pgClientService, times(3)).refund(captor.capture());
-        List<PGRefundRequestDTO> captured = captor.getAllValues();
-
-        assertTrue(captured.contains(new PGRefundRequestDTO(source1.impUid, source1.totalAmount, source1.refundAmount)));
-        assertTrue(captured.contains(new PGRefundRequestDTO(source2.impUid, source2.totalAmount, source2.refundAmount)));
-        assertTrue(captured.contains(new PGRefundRequestDTO(source2.impUid, source3.totalAmount, source3.refundAmount)));
-
-        ArgumentCaptor<PaymentEntity> paymentCaptor = ArgumentCaptor.forClass(PaymentEntity.class);
-        ArgumentCaptor<Integer> integerCaptor = ArgumentCaptor.forClass(Integer.class);
-        verify(paymentTransactionService, times(3)).refund(paymentCaptor.capture(), integerCaptor.capture());
-
-        List<PaymentEntity> capturedPayments = paymentCaptor.getAllValues();
-        assertTrue(capturedPayments.contains(source1.paymentEntity));
-        assertTrue(capturedPayments.contains(source2.paymentEntity));
-        assertTrue(capturedPayments.contains(source3.paymentEntity));
-
-        List<Integer> capturedAmounts = integerCaptor.getAllValues();
-        assertTrue(capturedAmounts.contains(source1.refundAmount));
-        assertTrue(capturedAmounts.contains(source2.refundAmount));
-        assertTrue(capturedAmounts.contains(source3.refundAmount));
     }
 }

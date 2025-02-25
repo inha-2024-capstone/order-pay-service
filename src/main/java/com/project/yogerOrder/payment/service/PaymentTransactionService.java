@@ -19,20 +19,20 @@ public class PaymentTransactionService {
 
     @Transactional
     public void confirmPayment(ConfirmPaymentRequestDTO confirmPaymentRequestDTO) {
-        PaymentEntity tempPayment = PaymentEntity.createTempPaidPayment(
+        PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(
                 confirmPaymentRequestDTO.pgPaymentId(),
                 confirmPaymentRequestDTO.orderId(),
                 confirmPaymentRequestDTO.amount(),
                 confirmPaymentRequestDTO.buyerId()
         );
-        paymentRepository.save(tempPayment);
+        paymentRepository.save(paymentEntity);
 
-        paymentEventProducer.publishEventByState(tempPayment);
+        paymentEventProducer.publishEventByState(paymentEntity);
     }
 
     @Transactional
     public void refund(PaymentEntity paymentEntity, Integer refundAmount) {
-        paymentEntity.partialRefund(refundAmount);
+        paymentEntity.refund(refundAmount);
         paymentRepository.save(paymentEntity);
 
         paymentEventProducer.publishEventByState(paymentEntity);
