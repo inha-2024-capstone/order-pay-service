@@ -24,7 +24,7 @@ public class PaymentEventProducer {
             publishPaymentCompletedEvent(paymentEntity);
         } else if (paymentEntity.getState() == PaymentState.CANCELED) {
             publishPaymentCanceledEvent(paymentEntity);
-        } else if (paymentEntity.getState() == PaymentState.ERROR) {
+        } else if (paymentEntity.getState() == PaymentState.ERRORED) {
             publishPaymentCanceledEvent(paymentEntity);
             publishPaymentErroredEvent(paymentEntity);
         } else {

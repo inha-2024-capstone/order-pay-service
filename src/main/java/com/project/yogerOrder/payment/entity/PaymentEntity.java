@@ -60,7 +60,7 @@ public class PaymentEntity extends BaseTimeEntity {
     }
 
     public static PaymentEntity createErrorPayment(String impUid, Long orderId, Integer amount, Long userId) {
-        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERROR);
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERRORED);
     }
 
     public Boolean isPartialRefundable(Integer refundAmount) {
@@ -87,9 +87,9 @@ public class PaymentEntity extends BaseTimeEntity {
     }
 
     public Boolean updateToErrorState() {
-        if (this.state == PaymentState.ERROR) return false;
+        if (this.state == PaymentState.ERRORED) return false;
 
-        this.state = PaymentState.ERROR;
+        this.state = PaymentState.ERRORED;
 
         return true;
     }
