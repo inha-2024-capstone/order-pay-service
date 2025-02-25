@@ -6,6 +6,7 @@ import com.project.yogerOrder.payment.entity.PaymentState;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.PaymentErroredEvent;
+import com.project.yogerOrder.payment.event.PaymentEventType;
 import com.project.yogerOrder.payment.event.outbox.service.PaymentOutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,15 +35,15 @@ public class PaymentEventProducer {
     }
 
     private void publishPaymentCompletedEvent(PaymentEntity paymentEntity) {
-        paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentCompletedEvent.from(paymentEntity));
+        paymentOutboxService.saveOutbox(PaymentEventType.COMPLETED, PaymentCompletedEvent.from(paymentEntity));
     }
 
     private void publishPaymentCanceledEvent(PaymentEntity paymentEntity) {
-        paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentCanceledEvent.from(paymentEntity));
+        paymentOutboxService.saveOutbox(PaymentEventType.CANCELED, PaymentCanceledEvent.from(paymentEntity));
     }
 
     private void publishPaymentErroredEvent(PaymentEntity paymentEntity) {
-        paymentOutboxService.saveOutbox(paymentEntity.getState().toString(), PaymentErroredEvent.from(paymentEntity));
+        paymentOutboxService.saveOutbox(PaymentEventType.ERRORED, PaymentErroredEvent.from(paymentEntity));
     }
 
 }

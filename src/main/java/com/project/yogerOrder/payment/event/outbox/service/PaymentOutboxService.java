@@ -2,6 +2,7 @@ package com.project.yogerOrder.payment.event.outbox.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.yogerOrder.payment.event.PaymentEventType;
 import com.project.yogerOrder.payment.event.outbox.entity.PaymentOutboxEntity;
 import com.project.yogerOrder.payment.event.outbox.repository.PaymentOutboxRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class PaymentOutboxService {
 
     private final ObjectMapper objectMapper;
 
-    public void saveOutbox(String eventType, Object payload) {
+    public void saveOutbox(PaymentEventType eventType, Object payload) {
         try {
             String stringPayload = objectMapper.writeValueAsString(payload);
             paymentOutboxRepository.save(new PaymentOutboxEntity(eventType, stringPayload));
