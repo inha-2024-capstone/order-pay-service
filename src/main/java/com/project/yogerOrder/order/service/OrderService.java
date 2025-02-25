@@ -129,7 +129,7 @@ public class OrderService {
     }
 
     private void updateByStateChange(OrderEntity orderEntity, OrderStateChangeEvent orderStateChangeEvent) {
-        if (!orderEntity.changeState(orderStateChangeEvent)) {
+        if (!orderEntity.changeStateIfChangeable(orderStateChangeEvent)) {
             log.debug("Order is already in the target state. orderId: {}", orderEntity.getId());
             return;
         }

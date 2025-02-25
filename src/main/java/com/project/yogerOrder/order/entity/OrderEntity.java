@@ -55,11 +55,11 @@ public class OrderEntity extends BaseTimeEntity {
                 && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
     }
 
-    public Boolean changeState(OrderStateChangeEvent orderStateChangeEvent) {
+    public Boolean changeStateIfChangeable(OrderStateChangeEvent orderStateChangeEvent) {
         OrderState nextState = OrderStaticStateMachine.nextState(this.state, orderStateChangeEvent);
-        boolean isUpdated = (this.state != nextState);
+        boolean isChanged = (this.state != nextState);
         this.state = nextState;
 
-        return isUpdated;
+        return isChanged;
     }
 }
