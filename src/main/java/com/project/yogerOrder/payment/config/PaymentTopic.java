@@ -8,15 +8,10 @@ public class PaymentTopic {
     public static final String ERRORED = "yoger.payment.prd.errored";
 
     public static String getTopicByEvent(PaymentEventType paymentEventType) {
-        switch (paymentEventType) {
-            case COMPLETED:
-                return COMPLETED;
-            case CANCELED:
-                return CANCELED;
-            case ERRORED:
-                return ERRORED;
-            default:
-                throw new RuntimeException("Invalid event type");
-        }
+        return switch (paymentEventType) {
+            case COMPLETED -> COMPLETED;
+            case CANCELED -> CANCELED;
+            case ERRORED -> ERRORED;
+        };
     }
 }

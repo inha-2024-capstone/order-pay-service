@@ -10,17 +10,11 @@ public class OrderTopic {
 
 
     public static String getTopicByEvent(OrderEventType orderEventType) {
-        switch (orderEventType) {
-            case CREATED:
-                return CREATED;
-            case COMPLETED:
-                return COMPLETED;
-            case CANCELED:
-                return CANCELED;
-            case ERRORED:
-                return ERRORED;
-            default:
-                throw new RuntimeException("Invalid event type");
-        }
+        return switch (orderEventType) {
+            case CREATED -> CREATED;
+            case COMPLETED -> COMPLETED;
+            case CANCELED -> CANCELED;
+            case ERRORED -> ERRORED;
+        };
     }
 }
