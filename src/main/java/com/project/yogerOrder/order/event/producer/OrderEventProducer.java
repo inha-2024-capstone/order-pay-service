@@ -1,7 +1,8 @@
-package com.project.yogerOrder.order.event;
+package com.project.yogerOrder.order.event.producer;
 
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
+import com.project.yogerOrder.order.event.*;
 import com.project.yogerOrder.order.event.outbox.service.OrderOutboxService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

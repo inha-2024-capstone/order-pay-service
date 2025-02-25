@@ -2,7 +2,7 @@ package com.project.yogerOrder.payment.service;
 
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.event.PaymentEventProducer;
+import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

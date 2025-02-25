@@ -1,8 +1,11 @@
-package com.project.yogerOrder.payment.event;
+package com.project.yogerOrder.payment.event.producer;
 
 
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.entity.PaymentState;
+import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
+import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
+import com.project.yogerOrder.payment.event.PaymentErroredEvent;
 import com.project.yogerOrder.payment.event.outbox.service.PaymentOutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

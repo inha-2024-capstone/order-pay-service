@@ -8,7 +8,7 @@ import com.project.yogerOrder.order.dto.response.OrderCountResponseDTOs;
 import com.project.yogerOrder.order.dto.response.OrderResponseDTOs;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
-import com.project.yogerOrder.order.event.OrderEventProducer;
+import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
