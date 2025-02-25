@@ -28,9 +28,9 @@ public class PaymentEventProducer {
         } else if (paymentEntity.getState() == PaymentState.ERROR) {
             publishPaymentCanceledEvent(paymentEntity);
             publishPaymentErroredEvent(paymentEntity);
+        } else {
+            throw new IllegalArgumentException("Invalid payment state: " + paymentEntity.getState());
         }
-
-        throw new IllegalArgumentException("Invalid payment state: " + paymentEntity.getState());
     }
 
     private void publishPaymentCompletedEvent(PaymentEntity paymentEntity) {

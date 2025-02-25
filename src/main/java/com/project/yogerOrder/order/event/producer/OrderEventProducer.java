@@ -28,9 +28,9 @@ public class OrderEventProducer {
         } else if (orderEntity.getState() == OrderState.ERROR) {
             publishOrderCanceledEvent(orderEntity);
             publishOrderErroredEvent(orderEntity);
+        } else {
+            throw new IllegalArgumentException("Invalid Order State" + orderEntity.getState());
         }
-
-        throw new IllegalArgumentException("Invalid Order State" + orderEntity.getState());
     }
 
     private void publishOrderCreatedEvent(OrderEntity orderEntity) {
