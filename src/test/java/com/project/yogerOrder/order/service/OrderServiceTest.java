@@ -4,9 +4,8 @@ import com.project.yogerOrder.order.config.OrderConfig;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
-import com.project.yogerOrder.order.exception.OrderRepositoryException;
+import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.repository.OrderRepository;
-import com.project.yogerOrder.product.service.ProductService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +34,7 @@ class OrderServiceTest {
     OrderRepository orderRepository;
 
     @Mock
-    ProductService productService;
+    OrderEventProducer orderEventProducer;
 
     @InjectMocks
     OrderService orderService;
@@ -60,31 +59,14 @@ class OrderServiceTest {
         Long id = orderService.orderProduct(userId, productId, orderRequestDTO);
 
         // then
-        Mockito.verify(productService).decreaseStock(productId, orderRequestDTO.quantity());
-
         Assertions.assertThat(id).isEqualTo(orderId);
         Assertions.assertThat(orderCaptor.getValue().getProductId()).isEqualTo(productId);
         Assertions.assertThat(orderCaptor.getValue().getQuantity()).isEqualTo(quantity);
         Assertions.assertThat(orderCaptor.getValue().getBuyerId()).isEqualTo(userId);
     }
 
-    @Test
-    void orderProduct_RollbackOnFailure() {
-        // given
-        Mockito.doNothing().when(productService).decreaseStock(productId, orderRequestDTO.quantity());
-        Mockito.when(orderRepository.save(Mockito.any(OrderEntity.class)))
-                .thenThrow(new RuntimeException()); // 주문 저장 시 예외 발생
-
-        // when, then
-        Assertions.assertThatThrownBy(() -> orderService.orderProduct(userId, productId, orderRequestDTO))
-                .isInstanceOf(OrderRepositoryException.class);
-
-        Mockito.verify(productService).decreaseStock(productId, orderRequestDTO.quantity());
-        Mockito.verify(productService).increaseStock(productId, orderRequestDTO.quantity()); // 보상 트랜잭션 검증
-    }
-
     @ParameterizedTest
-    @MethodSource("notPayableSource")
+    @MethodSource("isPayableSource")
     void isPayable(OrderState ordersState, Integer pastMinutes, Boolean expectedPayable) {
         // given
         OrderEntity order = new OrderEntity(1L, 1L, 1, 1L, ordersState);
@@ -98,13 +80,13 @@ class OrderServiceTest {
         Assertions.assertThat(result).isEqualTo(expectedPayable);
     }
 
-    private static Stream<Arguments> notPayableSource() {
+    private static Stream<Arguments> isPayableSource() {
         return Stream.of(
-                Arguments.of(OrderState.PENDING, 4, true),
-                Arguments.of(OrderState.ERROR, 4, false),
-                Arguments.of(OrderState.REJECTED, 4, false),
-                Arguments.of(OrderState.APPROVED, 4, false),
-                Arguments.of(OrderState.PENDING, 6, false)
+                Arguments.of(OrderState.CREATED, 4, true),
+                Arguments.of(OrderState.ERRORED, 4, false),
+                Arguments.of(OrderState.CANCELED, 4, false),
+                Arguments.of(OrderState.COMPLETED, 4, false),
+                Arguments.of(OrderState.CREATED, 6, false)
         );
     }
 }

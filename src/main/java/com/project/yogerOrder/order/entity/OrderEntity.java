@@ -1,11 +1,15 @@
 package com.project.yogerOrder.order.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
-import com.project.yogerOrder.order.exception.IllegalOrderStateUpdateException;
+import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
+import com.project.yogerOrder.order.util.stateMachine.OrderStaticStateMachine;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -43,32 +47,19 @@ public class OrderEntity extends BaseTimeEntity {
     }
 
     public static OrderEntity createPendingOrder(Long productId, Integer quantity, Long buyerId) {
-        return new OrderEntity(productId, quantity, buyerId, OrderState.PENDING);
+        return new OrderEntity(productId, quantity, buyerId, OrderState.CREATED);
     }
 
     public Boolean isPayable(Integer validTime) {
-        return this.state == OrderState.PENDING
+        return ((this.state == OrderState.CREATED) || (this.state == OrderState.STOCK_CONFIRMED))
                 && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
     }
 
-    public void approve() {
-        if (this.state != OrderState.PENDING) {
-            throw new IllegalOrderStateUpdateException();
-        }
-        this.state = OrderState.APPROVED;
-    }
+    public Boolean changeStateIfChangeable(OrderStateChangeEvent orderStateChangeEvent) {
+        OrderState nextState = OrderStaticStateMachine.nextState(this.state, orderStateChangeEvent);
+        boolean isChanged = (this.state != nextState);
+        this.state = nextState;
 
-    public void reject() {
-        if (this.state != OrderState.PENDING) {
-            throw new IllegalOrderStateUpdateException();
-        }
-        this.state = OrderState.REJECTED;
-    }
-
-    public void error() {
-        if (this.state != OrderState.PENDING) {
-            throw new IllegalOrderStateUpdateException();
-        }
-        this.state = OrderState.ERROR;
+        return isChanged;
     }
 }

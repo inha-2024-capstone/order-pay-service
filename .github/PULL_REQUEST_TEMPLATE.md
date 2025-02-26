@@ -11,3 +11,8 @@
 ---
 
 close ${issue_number}
+
+### 기타 사항
+
+---
+

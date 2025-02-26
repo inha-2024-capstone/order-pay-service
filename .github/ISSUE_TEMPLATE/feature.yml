@@ -14,10 +14,10 @@ body:
       validations:
           required: true
     - type: input
-      id: prepare-issue
+      id: related-issue
       attributes:
-          label: Prepare Issue(Optional)
-          description: 관련된 Prepare가 있다면 적어주세요.
+          label: 관련 Issue or PR
+          description: 관련된 Issue나 PR이 있다면 적어주세요.
           placeholder: "ex. #14"
       validations:
           required: false

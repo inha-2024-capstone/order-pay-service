@@ -17,7 +17,7 @@ body:
       id: related-issue
       attributes:
           label: 관련 Issue
-          description: 관련된 Issue가 있다면 적어주세요.
+          description: 관련된 Issue나 PR이 있다면 적어주세요.
           placeholder: "ex. #14"
       validations:
           required: false
