@@ -3,23 +3,19 @@ package com.project.yogerOrder.payment.service;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTO;
-import com.project.yogerOrder.payment.dto.request.PartialRefundRequestDTOs;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStateChangeEvent;
 import com.project.yogerOrder.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Slf4j
 @Service
@@ -72,7 +68,7 @@ public class PaymentService {
         if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity())) { // 내부
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
-            saveCanceledPayment(errorPayment, pgInform, false);
+            saveCanceledPayment(errorPayment, pgInform, true);
 
             return;
         }
@@ -115,7 +111,7 @@ public class PaymentService {
     @Transactional
     public void orderCanceled(Long orderId) {
         paymentRepository.findByOrderId(orderId).ifPresent(paymentEntity -> {
-            Boolean isUpdated = paymentEntity.updateToCanceledState();
+            Boolean isUpdated = paymentEntity.changeStateIfChangeable(PaymentStateChangeEvent.ORDER_CANCELED);
             if (!isUpdated) {
                 log.debug("payment {} is already canceled", paymentEntity.getId());
                 return;
@@ -126,48 +122,5 @@ public class PaymentService {
 
             paymentEventProducer.publishEventByState(paymentEntity);
         });
-    }
-
-    public void productsExpiration(PartialRefundRequestDTOs partialRefundRequestDTOs) {
-        partialRefundRequestDTOs.partialRefundRequestDTOs().forEach(this::expirationRefundPerProduct);
-    }
-
-    private void expirationRefundPerProduct(PartialRefundRequestDTO partialRefundRequestDTO) {
-        Long productId = partialRefundRequestDTO.productId();
-        for (PaymentOrderDTO paymentOrderDTO : paymentRepository.findAllPaymentAndOrderByProductId(productId)) {
-            PaymentEntity payment = paymentOrderDTO.payment();
-            OrderEntity order = paymentOrderDTO.order();
-            int refundAmountPerQuantity = partialRefundRequestDTO.originalMaxPrice() - partialRefundRequestDTO.confirmedPrice();
-            int refundAmount = refundAmountPerQuantity * order.getQuantity();
-            int checksum = payment.getAmount();
-
-            if (!payment.isPayCompletable()) {
-                log.error("payment {} is in invalid state", payment.getId());
-                updateByError(payment);
-                continue;
-            }
-            if (!Objects.equals(payment.getAmount(), partialRefundRequestDTO.originalMaxPrice() * order.getQuantity())
-                    || !payment.isPartialRefundable(refundAmount)) {
-                log.error("Failed to partial refund payment {} from PG", payment.getId());
-                updateByError(payment);
-                continue;
-            }
-
-            // 외부 API 장애에 따라 db state가 영향받지 않도록, 외부 API 호출이 완료되면 entity를 update하도록 작성
-            pgClientService.refund(new PGRefundRequestDTO(payment.getPgPaymentId(), checksum, refundAmount));
-            paymentTransactionService.refund(payment, refundAmount);
-        }
-    }
-
-    private void updateByError(PaymentEntity payment) {
-        Boolean isUpdated = payment.updateToErrorState();
-        if (!isUpdated) {
-            log.debug("payment {} is already errored", payment.getId());
-            return;
-        }
-
-        paymentRepository.save(payment);
-
-        paymentEventProducer.publishEventByState(payment);
     }
 }

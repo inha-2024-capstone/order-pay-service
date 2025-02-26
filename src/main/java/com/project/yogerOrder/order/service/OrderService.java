@@ -11,6 +11,7 @@ import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
 import com.project.yogerOrder.order.repository.OrderRepository;
+import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -39,7 +40,7 @@ public class OrderService {
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
 
-        orderEventProducer.publishEventByState(orderEntity);
+        orderEventProducer.publishOrderCreatedEvent(orderEntity);
 
         return orderEntity.getId();
     }
@@ -76,69 +77,39 @@ public class OrderService {
     @Transactional
     public void updateByDeductionSuccess(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
-        Boolean isUpdated = orderEntity.stockConfirmed();
-        if (!isUpdated) {
-            log.debug("Order is already completed. orderId: {}", orderEntity.getId());
+
+        if (orderEntity.getState() == OrderState.CANCELED) {
+            orderEventProducer.publishOrderDeductionAfterCanceledEvent(orderEntity);
             return;
         }
-        orderRepository.save(orderEntity);
 
-        orderEventProducer.publishEventByState(orderEntity);
+        updateByStateChange(orderEntity, OrderStateChangeEvent.STOCK_DEDUCTED);
     }
 
     @Transactional
     public void updateByDeductionFail(Long orderId) {
+        updateByStateChange(findById(orderId), OrderStateChangeEvent.CANCELED);
+    }
+
+    @Transactional
+    public void updateByPaymentCompleted(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
-        Boolean isUpdated = orderEntity.cancel();
-        if (!isUpdated) {
-            log.debug("Order is already canceled. orderId: {}", orderEntity.getId());
+
+        if (orderEntity.getState() == OrderState.CANCELED) {
+            orderEventProducer.publishPaymentCompletedAfterOrderCanceledEvent(orderEntity);
             return;
         }
-        orderRepository.save(orderEntity);
 
-        orderEventProducer.publishEventByState(orderEntity);
+        updateByStateChange(orderEntity, OrderStateChangeEvent.PAID);
     }
 
     @Transactional
-    public void updateByPaymentCompleted(Long id) {
-        OrderEntity orderEntity = findById(id);
-        Boolean isUpdated = orderEntity.paymentCompleted();
-        if (!isUpdated) {
-            log.debug("Order is already completed. orderId: {}", orderEntity.getId());
-            return;
-        }
-        orderRepository.save(orderEntity);
-
-        orderEventProducer.publishEventByState(orderEntity);
+    public void updateByPaymentCanceled(Long orderId) {
+        updateByStateChange(findById(orderId), OrderStateChangeEvent.CANCELED);
     }
-
-    @Transactional
-    public void updateByPaymentCanceled(Long id) {
-        OrderEntity orderEntity = findById(id);
-        Boolean isUpdated = orderEntity.cancel();
-        if (!isUpdated) {
-            log.debug("Order is already canceled. orderId: {}", orderEntity.getId());
-            return;
-        }
-        orderRepository.save(orderEntity);
-
-        orderEventProducer.publishEventByState(orderEntity);
-    }
-
-    @Transactional
-    public void updateByExpiration(OrderEntity orderEntity) {
-        Boolean isUpdated = orderEntity.cancel();
-        if (!isUpdated) {
-            log.debug("Order is already canceled. orderId: {}", orderEntity.getId());
-            return;
-        }
-        orderRepository.save(orderEntity);
-
-        orderEventProducer.publishEventByState(orderEntity);
-    }
-
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
+    @Transactional
     @Scheduled(cron = "${order.cron.expiration}")
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
@@ -150,5 +121,22 @@ public class OrderService {
         );
 
         log.info("Pending order expiration schedule successfully executed");
+    }
+
+
+    private void updateByExpiration(OrderEntity orderEntity) {
+        updateByStateChange(orderEntity, OrderStateChangeEvent.CANCELED);
+    }
+
+    private void updateByStateChange(OrderEntity orderEntity, OrderStateChangeEvent orderStateChangeEvent) {
+        OrderState beforeState = orderEntity.getState();
+        if (!orderEntity.changeStateIfChangeable(orderStateChangeEvent)) {
+            log.debug("Order is already in the target state. orderId: {}", orderEntity.getId());
+            return;
+        }
+
+        orderRepository.save(orderEntity);
+
+        orderEventProducer.publishEventByState(orderEntity, beforeState);
     }
 }

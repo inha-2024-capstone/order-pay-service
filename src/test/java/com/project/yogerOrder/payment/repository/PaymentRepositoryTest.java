@@ -34,7 +34,7 @@ class PaymentRepositoryTest extends CommonRepositoryTest {
         OrderEntity orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
         Long orderId = orderRepository.save(orderEntity).getId();
 
-        PaymentEntity paymentEntity = PaymentEntity.createTempPaidPayment(pgId, orderId, totalAmount, userId);
+        PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(pgId, orderId, totalAmount, userId);
         paymentRepository.save(paymentEntity);
 
         // when

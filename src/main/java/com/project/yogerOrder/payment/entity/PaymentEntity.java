@@ -1,6 +1,8 @@
 package com.project.yogerOrder.payment.entity;
 
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStateChangeEvent;
+import com.project.yogerOrder.payment.util.stateMachine.PaymentStaticStateMachine;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -51,8 +53,8 @@ public class PaymentEntity extends BaseTimeEntity {
         this.state = state;
     }
 
-    public static PaymentEntity createTempPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
-        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.TEMPORARY_PAID);
+    public static PaymentEntity createPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.PAID);
     }
 
     public static PaymentEntity createCanceledPayment(String impUid, Long orderId, Integer amount, Long userId) {
@@ -60,41 +62,25 @@ public class PaymentEntity extends BaseTimeEntity {
     }
 
     public static PaymentEntity createErrorPayment(String impUid, Long orderId, Integer amount, Long userId) {
-        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERROR);
+        return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERRORED);
     }
 
     public Boolean isPartialRefundable(Integer refundAmount) {
-        return (refundAmount < this.amount) && (this.refundedAmount == 0) && (this.state == PaymentState.TEMPORARY_PAID);
+        return (refundAmount < this.amount) && (this.refundedAmount == 0) && (this.state == PaymentState.PAID);
     }
 
-    public void partialRefund(Integer refundAmount) {
+    public void refund(Integer refundAmount) {
         if (!isPartialRefundable(refundAmount)) throw new IllegalStateException("This payment is not refundable");
 
-        this.state = PaymentState.PAID_END;
+        this.state = PaymentState.CANCELED;
         this.refundedAmount = refundAmount;
     }
 
-    public boolean isPayCompletable() {
-        return this.state == PaymentState.TEMPORARY_PAID;
-    }
+    public Boolean changeStateIfChangeable(PaymentStateChangeEvent paymentStateChangeEvent) {
+        PaymentState nextState = PaymentStaticStateMachine.nextState(this.state, paymentStateChangeEvent);
+        boolean isChanged = (this.state != nextState);
+        this.state = nextState;
 
-    public Boolean updateToCanceledState() {
-        if (this.state == PaymentState.CANCELED) {
-            return false;
-        } else if (this.state == PaymentState.TEMPORARY_PAID || this.state == PaymentState.PAID_END) {
-            this.state = PaymentState.CANCELED;
-
-            return true;
-        } else {
-            throw new IllegalStateException("This payment is not cancelable");
-        }
-    }
-
-    public Boolean updateToErrorState() {
-        if (this.state == PaymentState.ERROR) return false;
-
-        this.state = PaymentState.ERROR;
-
-        return true;
+        return isChanged;
     }
 }
