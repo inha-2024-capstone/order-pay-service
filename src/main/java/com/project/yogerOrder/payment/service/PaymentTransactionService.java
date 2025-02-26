@@ -1,8 +1,8 @@
 package com.project.yogerOrder.payment.service;
 
-import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
+import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,24 +15,18 @@ public class PaymentTransactionService {
 
     private final PaymentRepository paymentRepository;
 
-    private final OrderService orderService;
+    private final PaymentEventProducer paymentEventProducer;
 
     @Transactional
-    public void confirmPaymentAndOrder(ConfirmPaymentRequestDTO confirmPaymentRequestDTO) {
-        orderService.updateStatusToPaidById(confirmPaymentRequestDTO.orderId());
-
-        PaymentEntity tempPayment = PaymentEntity.createTempPaidPayment(
+    public void confirmPayment(ConfirmPaymentRequestDTO confirmPaymentRequestDTO) {
+        PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(
                 confirmPaymentRequestDTO.pgPaymentId(),
                 confirmPaymentRequestDTO.orderId(),
                 confirmPaymentRequestDTO.amount(),
                 confirmPaymentRequestDTO.buyerId()
         );
+        paymentRepository.save(paymentEntity);
 
-        paymentRepository.save(tempPayment);
-    }
-
-    @Transactional
-    public void refund(PaymentEntity paymentEntity, Integer refundAmount) {
-        paymentEntity.partialRefund(refundAmount);
+        paymentEventProducer.publishEventByState(paymentEntity);
     }
 }

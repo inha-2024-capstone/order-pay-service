@@ -50,3 +50,12 @@ management:
     metrics:
         enable:
             jvm: true
+
+kafka:
+    admin:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+    consumer:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+        auto-offset-reset: earliest
+        enable-auto-commit: false
+        isolation-level: read_committed
