@@ -20,7 +20,11 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
 
         if (orderEntity.getState() == OrderState.COMPLETED) {
             publishOrderCompletedEvent(orderEntity);
-        }  else if (orderEntity.getState() == OrderState.CANCELED) {
+        } else if (orderEntity.getState() == OrderState.STOCK_CONFIRMED) {
+            // do nothing
+        } else if (orderEntity.getState() == OrderState.PAYMENT_COMPLETED) {
+            // do nothing
+        } else if (orderEntity.getState() == OrderState.CANCELED) {
             publishOrderCanceledEvent(orderEntity, isStockOccupied, isPaymentCompleted);
         } else if (orderEntity.getState() == OrderState.ERRORED) {
             publishOrderCanceledEvent(orderEntity, isStockOccupied, isPaymentCompleted);
