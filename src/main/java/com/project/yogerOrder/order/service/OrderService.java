@@ -88,7 +88,7 @@ public class OrderService {
 
     @Transactional
     public void updateByDeductionFail(Long orderId) {
-        updateByStateChange(findById(orderId), OrderStateChangeEvent.CANCELED);
+        updateByStateChange(findById(orderId), OrderStateChangeEvent.STOCK_DEDUCT_FAILED);
     }
 
     @Transactional
@@ -105,7 +105,7 @@ public class OrderService {
 
     @Transactional
     public void updateByPaymentCanceled(Long orderId) {
-        updateByStateChange(findById(orderId), OrderStateChangeEvent.CANCELED);
+        updateByStateChange(findById(orderId), OrderStateChangeEvent.PAYMENT_CANCELED);
     }
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
@@ -125,7 +125,7 @@ public class OrderService {
 
 
     private void updateByExpiration(OrderEntity orderEntity) {
-        updateByStateChange(orderEntity, OrderStateChangeEvent.CANCELED);
+        updateByStateChange(orderEntity, OrderStateChangeEvent.EXPIRED);
     }
 
     private void updateByStateChange(OrderEntity orderEntity, OrderStateChangeEvent orderStateChangeEvent) {

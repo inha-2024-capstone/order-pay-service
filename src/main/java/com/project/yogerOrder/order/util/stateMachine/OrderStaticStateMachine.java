@@ -15,23 +15,29 @@ public class OrderStaticStateMachine {
     static {
         entryTransition(OrderState.CREATED, OrderStateChangeEvent.STOCK_DEDUCTED, OrderState.STOCK_CONFIRMED);
         entryTransition(OrderState.CREATED, OrderStateChangeEvent.PAID, OrderState.PAYMENT_COMPLETED);
-        entryTransition(OrderState.CREATED, OrderStateChangeEvent.CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.CREATED, OrderStateChangeEvent.STOCK_DEDUCT_FAILED, OrderState.CANCELED);
+        entryTransition(OrderState.CREATED, OrderStateChangeEvent.PAYMENT_CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.CREATED, OrderStateChangeEvent.EXPIRED, OrderState.CANCELED);
 
         entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.PAID, OrderState.COMPLETED);
-        entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.STOCK_DEDUCT_FAILED, OrderState.CANCELED);
+        entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.PAYMENT_CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.EXPIRED, OrderState.CANCELED);
         entryTransition(OrderState.STOCK_CONFIRMED, OrderStateChangeEvent.STOCK_DEDUCTED, OrderState.STOCK_CONFIRMED);
 
         entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.STOCK_DEDUCTED, OrderState.COMPLETED);
-        entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.STOCK_DEDUCT_FAILED, OrderState.CANCELED);
+        entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.PAYMENT_CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.EXPIRED, OrderState.CANCELED);
         entryTransition(OrderState.PAYMENT_COMPLETED, OrderStateChangeEvent.PAID, OrderState.PAYMENT_COMPLETED);
 
         entryTransition(OrderState.COMPLETED, OrderStateChangeEvent.STOCK_DEDUCTED, OrderState.COMPLETED);
         entryTransition(OrderState.COMPLETED, OrderStateChangeEvent.PAID, OrderState.COMPLETED);
-        entryTransition(OrderState.COMPLETED, OrderStateChangeEvent.CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.COMPLETED, OrderStateChangeEvent.EXPIRED, OrderState.CANCELED);
 
         entryTransition(OrderState.CANCELED, OrderStateChangeEvent.STOCK_DEDUCTED, OrderState.CANCELED);
         entryTransition(OrderState.CANCELED, OrderStateChangeEvent.PAID, OrderState.CANCELED);
-        entryTransition(OrderState.CANCELED, OrderStateChangeEvent.CANCELED, OrderState.CANCELED);
+        entryTransition(OrderState.CANCELED, OrderStateChangeEvent.EXPIRED, OrderState.CANCELED);
     }
 
     private static void entryTransition(OrderState currentState, OrderStateChangeEvent event, OrderState nextState) {
