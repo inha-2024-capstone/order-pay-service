@@ -1,17 +1,24 @@
 package com.project.yogerOrder.order.entity;
 
+import java.time.LocalDateTime;
+
 import com.project.yogerOrder.global.entity.BaseTimeEntity;
 import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
 import com.project.yogerOrder.order.util.stateMachine.OrderStaticStateMachine;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -38,6 +45,8 @@ public class OrderEntity extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderState state;
 
+    @Version
+    private Long version;
 
     private OrderEntity(Long productId, Integer quantity, Long buyerId, OrderState state) {
         this.productId = productId;
