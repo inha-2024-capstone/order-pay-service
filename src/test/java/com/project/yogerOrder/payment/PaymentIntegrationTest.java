@@ -1,5 +1,17 @@
 package com.project.yogerOrder.payment;
 
+import static org.awaitility.Awaitility.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+
+import java.time.Duration;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
 import com.project.yogerOrder.order.config.OrderTopic;
@@ -10,18 +22,6 @@ import com.project.yogerOrder.payment.entity.PaymentState;
 import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.time.Duration;
-
-import static org.awaitility.Awaitility.await;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class PaymentIntegrationTest extends UsingTestContainerTest {
@@ -42,7 +42,6 @@ public class PaymentIntegrationTest extends UsingTestContainerTest {
     @Test
     void paymentStateChangeTest() {
         // given
-        Long paymentId = 1L;
         String impUid = "imp_123123123";
         Long orderId = 123123L;
         Integer amount = 1000;
@@ -54,8 +53,7 @@ public class PaymentIntegrationTest extends UsingTestContainerTest {
 
         // payment entity 생성 후 저장
         PaymentEntity tempPaidPayment = PaymentEntity.createPaidPayment(impUid, orderId, amount, userId);
-        ReflectionTestUtils.setField(tempPaidPayment, "id", paymentId); // id 설정
-        paymentRepository.save(tempPaidPayment);
+        Long paymentId = paymentRepository.save(tempPaidPayment).getId();
 
         // orderCanceledEvent 생성을 위한 order entity 생성 후 활용
         OrderEntity orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
