@@ -1,6 +1,7 @@
 package com.project.yogerOrder.payment.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
@@ -39,14 +40,14 @@ class PaymentTransactionService {
         paymentEventProducer.publishEventByState(paymentEntity);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     void saveCanceledPayment(PaymentEntity paymentEntity) {
         paymentRepository.save(paymentEntity);
 
         paymentEventProducer.publishEventByState(paymentEntity);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     void orderCanceled(Long orderId) {
         paymentRepository.findByOrderId(orderId).ifPresent(paymentEntity -> {
             Boolean isUpdated = paymentEntity.changeStateIfChangeable(PaymentStateChangeEvent.ORDER_CANCELED);

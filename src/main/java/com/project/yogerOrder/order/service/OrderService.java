@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -77,6 +78,7 @@ public class OrderService {
 
     // UPDATE
     @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByDeductionSuccess(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -89,11 +91,13 @@ public class OrderService {
     }
 
     @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByDeductionFail(Long orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.STOCK_DEDUCT_FAILED);
     }
 
     @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByPaymentCompleted(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -106,13 +110,14 @@ public class OrderService {
     }
 
     @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByPaymentCanceled(Long orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.PAYMENT_CANCELED);
     }
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
-    @Transactional
     @Scheduled(cron = "${order.cron.expiration}")
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState ->
