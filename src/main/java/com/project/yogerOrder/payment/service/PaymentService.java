@@ -1,21 +1,21 @@
 package com.project.yogerOrder.payment.service;
 
+import org.springframework.stereotype.Service;
+
+import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
-import com.project.yogerOrder.payment.util.stateMachine.PaymentStateChangeEvent;
 import com.project.yogerOrder.product.service.ProductService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -32,12 +32,11 @@ public class PaymentService {
 
     private final ProductService productService;
 
-    private final PaymentEventProducer paymentEventProducer;
-
 
     // 웹훅인 줄 알았는데 외부 요청이었으면 -> 상관 없게 로직 작성
     // 신뢰 정보(= 사용자 조작 불가, 검증 필요): 결제 id(존재 검증), 결제 금액(원래 값과 비교), 결제 상태(paid 상태인지 검사)
     // 비신뢰 정보(= 사용자 조작 가능, 검증 필요): 주문 id(다른 주문 결제 검증 필요 X)
+    @OptimisticLockRetry
     public void verifyPayment(VerifyPaymentRequestDTO verifyPaymentRequestDTO) {
         // 결제 id 존재 검증
         if (paymentRepository.existsByPgPaymentId(verifyPaymentRequestDTO.impUid())) { // 내부
@@ -50,7 +49,7 @@ public class PaymentService {
         if (!pgInform.isPaid()) { // 결제된 상태가 아니면 환불 X
             log.error("PG payment {} is not paid state", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
-            saveCanceledPayment(errorPayment, pgInform, false);
+            paymentTransactionService.saveCanceledPayment(errorPayment);
 
             return;
         }
@@ -59,7 +58,8 @@ public class PaymentService {
         if (!orderService.isPayable(orderEntity)) { // 내부
             log.debug("payment {} is not payable", pgInform.pgPaymentId());
             PaymentEntity canceledPayment = cancelPaymentByValidation(orderEntity, pgInform);
-            saveCanceledPayment(canceledPayment, pgInform, true);
+            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
+            paymentTransactionService.saveCanceledPayment(canceledPayment);
 
             return;
         }
@@ -68,7 +68,8 @@ public class PaymentService {
         if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity())) { // 내부
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
-            saveCanceledPayment(errorPayment, pgInform, true);
+            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
+            paymentTransactionService.saveCanceledPayment(errorPayment);
 
             return;
         }
@@ -99,28 +100,8 @@ public class PaymentService {
         );
     }
 
-    private void saveCanceledPayment(PaymentEntity paymentEntity, PGPaymentInformResponseDTO pgInform,
-                                     Boolean isRefund) {
-        paymentRepository.save(paymentEntity);
-
-        if (isRefund) pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
-
-        paymentEventProducer.publishEventByState(paymentEntity);
-    }
-
-    @Transactional
+    @OptimisticLockRetry
     public void orderCanceled(Long orderId) {
-        paymentRepository.findByOrderId(orderId).ifPresent(paymentEntity -> {
-            Boolean isUpdated = paymentEntity.changeStateIfChangeable(PaymentStateChangeEvent.ORDER_CANCELED);
-            if (!isUpdated) {
-                log.debug("payment {} is already canceled", paymentEntity.getId());
-                return;
-            }
-            paymentRepository.save(paymentEntity);
-
-            pgClientService.refund(new PGRefundRequestDTO(paymentEntity.getPgPaymentId(), paymentEntity.getAmount()));
-
-            paymentEventProducer.publishEventByState(paymentEntity);
-        });
+        paymentTransactionService.orderCanceled(orderId);
     }
 }

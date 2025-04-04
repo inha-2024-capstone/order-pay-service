@@ -45,6 +45,9 @@ public class PaymentEntity extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private PaymentState state;
 
+    @Version
+    private Long version;
+
     private PaymentEntity(String pgPaymentId, Long orderId, Integer amount, Long userId, PaymentState state) {
         this.pgPaymentId = pgPaymentId;
         this.orderId = orderId;
