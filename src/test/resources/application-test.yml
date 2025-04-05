@@ -9,7 +9,6 @@ spring:
         password: ${DB_PASSWORD}
 
     jpa:
-        #show-sql: true
         hibernate:
             ddl-auto: create
         properties:
@@ -20,7 +19,7 @@ spring:
         virtual:
             enabled: true
 
-portOne:
+port-one:
     v1:
         APIKey: ${V1_APIKEY}
         APISecret: ${V1_APISECRET}
@@ -42,24 +41,11 @@ logging:
     level:
         org.library.yogerLibrary.log: DEBUG
 
-management:
-    endpoints:
-        web:
-            exposure:
-                include: "*"
-    metrics:
-        enable:
-            jvm: true
-
 kafka:
-    admin:
-        bootstrap-servers: "localhost:9092"
     producer:
-        bootstrap-servers: "localhost:9092"
         enable-idempotence: true
         transaction-id-prefix: tx-
     consumer:
-        bootstrap-servers: "localhost:9092"
         auto-offset-reset: earliest
         enable-auto-commit: false
         isolation-level: read_committed

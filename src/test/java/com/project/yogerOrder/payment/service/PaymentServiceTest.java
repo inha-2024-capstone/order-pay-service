@@ -1,20 +1,13 @@
 package com.project.yogerOrder.payment.service;
 
-import com.project.yogerOrder.order.entity.OrderEntity;
-import com.project.yogerOrder.order.service.OrderService;
-import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
-import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.event.producer.PaymentEventProducer;
-import com.project.yogerOrder.payment.repository.PaymentRepository;
-import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
-import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
-import com.project.yogerOrder.payment.util.pg.enums.PGState;
-import com.project.yogerOrder.payment.util.pg.service.PGClientService;
-import com.project.yogerOrder.product.dto.response.PriceByQuantity;
-import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.service.ProductService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,14 +21,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.service.OrderService;
+import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
+import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
+import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
+import com.project.yogerOrder.payment.entity.PaymentEntity;
+import com.project.yogerOrder.payment.repository.PaymentRepository;
+import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
+import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
+import com.project.yogerOrder.payment.util.pg.enums.PGState;
+import com.project.yogerOrder.payment.util.pg.service.PGClientService;
+import com.project.yogerOrder.product.dto.response.PriceByQuantity;
+import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
+import com.project.yogerOrder.product.service.ProductService;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -57,9 +56,6 @@ class PaymentServiceTest {
 
     @Mock
     private ProductService productService;
-
-    @Mock
-    private PaymentEventProducer paymentEventProducer;
 
     private TestSource source1;
 
@@ -186,7 +182,7 @@ class PaymentServiceTest {
     @Test
     void verifyFailByAmount() {
         // given
-        ArgumentCaptor<PGRefundRequestDTO> captor = ArgumentCaptor.forClass(PGRefundRequestDTO.class);
+        ArgumentCaptor<PaymentEntity> captor = ArgumentCaptor.forClass(PaymentEntity.class);
 
         PGPaymentInformResponseDTO invalidPGInform = new PGPaymentInformResponseDTO(
                 source1.impUid, source1.merchantUid, (int) (source1.pgInform.amount() * 0.1), PGState.PAID
@@ -201,11 +197,10 @@ class PaymentServiceTest {
         // when
         paymentService.verifyPayment(source1.requestDTO);
 
-        // when, then
-        verify(pgClientService, times(1)).refund(captor.capture());
-        Assertions.assertThat(captor.getValue().paymentId()).isEqualTo(source1.pgInform.pgPaymentId());
-        Assertions.assertThat(captor.getValue().checksum()).isEqualTo(invalidPGInform.amount());
-        Assertions.assertThat(captor.getValue().refundAmount()).isEqualTo(invalidPGInform.amount());
+        // then
+        verify(paymentTransactionService, times(1)).saveCanceledPayment(captor.capture());
+        Assertions.assertThat(captor.getValue().getPgPaymentId()).isEqualTo(source1.pgInform.pgPaymentId());
+        Assertions.assertThat(captor.getValue().getAmount()).isEqualTo(invalidPGInform.amount());
         verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
 }

@@ -1,11 +1,8 @@
 package com.project.yogerOrder.order.service;
 
-import com.project.yogerOrder.order.config.OrderConfig;
-import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
-import com.project.yogerOrder.order.entity.OrderEntity;
-import com.project.yogerOrder.order.entity.OrderState;
-import com.project.yogerOrder.order.event.producer.OrderEventProducer;
-import com.project.yogerOrder.order.repository.OrderRepository;
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,8 +17,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.stream.Stream;
+import com.project.yogerOrder.order.config.OrderConfig;
+import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
+import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderState;
+import com.project.yogerOrder.order.event.producer.OrderEventProducer;
+import com.project.yogerOrder.order.repository.OrderRepository;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(OrderConfig.class)
@@ -69,7 +70,7 @@ class OrderServiceTest {
     @MethodSource("isPayableSource")
     void isPayable(OrderState ordersState, Integer pastMinutes, Boolean expectedPayable) {
         // given
-        OrderEntity order = new OrderEntity(1L, 1L, 1, 1L, ordersState);
+        OrderEntity order = new OrderEntity(1L, 1L, 1, 1L, ordersState, 1L);
         ReflectionTestUtils.setField(order, "createdTime", LocalDateTime.now().minusMinutes(pastMinutes));
 
         // when

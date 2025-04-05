@@ -1,5 +1,15 @@
 package com.project.yogerOrder.order.service;
 
+import java.util.List;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
+import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
 import com.project.yogerOrder.order.config.OrderConfig;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrdersCountRequestDTO;
@@ -12,14 +22,9 @@ import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -34,8 +39,7 @@ public class OrderService {
 
 
     // CREATE
-    // 주문을 생성하는 과정을 먼저 진행하면, 주문이 생성되고, 재고 감소가 실패하기 전에 주문이 결제되면 문제가 생기기 때문에 재고 감소 먼저 진행
-    // + 일반적으로 외부 서비스에 문제가 생기는 경우가 많기 때문에 외부 서비스 호출 먼저
+    @Transactional
     public Long orderProduct(Long userId, Long productId, OrderRequestDTO orderRequestDTO) {
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
@@ -47,7 +51,6 @@ public class OrderService {
 
 
     // READ
-    @Transactional(readOnly = true)
     public OrderEntity findById(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(OrderNotFoundException::new);
     }
@@ -74,7 +77,8 @@ public class OrderService {
     }
 
     // UPDATE
-    @Transactional
+    @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByDeductionSuccess(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -86,12 +90,14 @@ public class OrderService {
         updateByStateChange(orderEntity, OrderStateChangeEvent.STOCK_DEDUCTED);
     }
 
-    @Transactional
+    @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByDeductionFail(Long orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.STOCK_DEDUCT_FAILED);
     }
 
-    @Transactional
+    @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByPaymentCompleted(Long orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -103,14 +109,15 @@ public class OrderService {
         updateByStateChange(orderEntity, OrderStateChangeEvent.PAID);
     }
 
-    @Transactional
+    @OptimisticLockRetry
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateByPaymentCanceled(Long orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.PAYMENT_CANCELED);
     }
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
-    @Transactional
     @Scheduled(cron = "${order.cron.expiration}")
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState ->

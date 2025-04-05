@@ -1,5 +1,22 @@
 package com.project.yogerOrder.order;
 
+import static org.awaitility.Awaitility.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
 import com.project.yogerOrder.order.entity.OrderEntity;
@@ -13,21 +30,8 @@ import com.project.yogerOrder.product.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.ProductEventType;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.stream.Stream;
-
-import static org.awaitility.Awaitility.await;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import jakarta.persistence.EntityManager;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class OrderIntegrationTest extends UsingTestContainerTest {
@@ -37,6 +41,12 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     @Autowired
     OrderRepository orderRepository;
+
+    @Autowired
+    EntityManager entityManager;
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
 
     private static final Long productId = 1L;
     private static final Integer quantity = 2;
@@ -53,8 +63,12 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
         OrderEntity initialOrder = OrderEntity.createPendingOrder(productId, quantity, userId);
         ReflectionTestUtils.setField(initialOrder, "id", orderId);
         ReflectionTestUtils.setField(initialOrder, "state", startState);
+        ReflectionTestUtils.setField(initialOrder, "version", 1L);
 
-        orderRepository.save(initialOrder);
+        // ReflectionTestUtils.setField()로 설정하면 jpa entity가 detach됨. 이것을 해결하기 위해 영속 상태로 만들어야 함.
+        OrderEntity mergedInitialOrder = transactionTemplate.execute(status -> entityManager.merge(initialOrder));
+
+        orderRepository.save(Objects.requireNonNull(mergedInitialOrder));
 
         // when
         kafkaTemplate.executeInTransaction(kafkaTemplate -> {
