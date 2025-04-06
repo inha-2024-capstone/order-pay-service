@@ -12,7 +12,7 @@
 ## 4. 마이크로 서비스 아키텍쳐
 ![architecture_1_background](https://github.com/user-attachments/assets/d574c197-83b1-4445-97a2-5a5619db3af3)
 ## 5. 기술 스택
-![asddddddddd (1)](https://github.com/user-attachments/assets/fe8839ec-13a7-4814-9289-a976bbb14ed1)
+![기술스택](https://github.com/user-attachments/assets/e170a0c7-4b8a-4d26-81b1-004fb6701d28)
 
 ## 6. 팀원
 
@@ -59,3 +59,4 @@
     </td>
   </tr>
 </table>
+
