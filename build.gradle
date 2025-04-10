@@ -35,6 +35,7 @@ dependencies {
 
 	// DB
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	runtimeOnly 'com.mysql:mysql-connector-j:9.+'
 
 	// MQ
@@ -46,6 +47,8 @@ dependencies {
 	// Shedlock
 	implementation 'net.javacrumbs.shedlock:shedlock-spring:6.0.2'
 	implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.0.2'
+	// Redisson
+	implementation 'org.redisson:redisson-spring-boot-starter:3.45.1'
  	// custom yoger
 	implementation 'com.github.inha-2024-capstone:yoger-library:v0.4.0'
 
