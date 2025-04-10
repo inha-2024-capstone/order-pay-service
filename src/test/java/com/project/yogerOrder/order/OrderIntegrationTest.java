@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -19,9 +20,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
+import com.project.yogerOrder.order.controller.OrderController;
+import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.repository.OrderRepository;
+import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.payment.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
@@ -40,6 +44,9 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
+    OrderController orderController;
+
+    @Autowired
     OrderRepository orderRepository;
 
     @Autowired
@@ -54,6 +61,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     private static final Integer totalPrice = 1000;
     private static final String paymentId = "4";
     private static final Long orderId = 1L;
+    private static final Integer currentStock = 3;
 
 
     @ParameterizedTest
@@ -211,7 +219,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     private static ProductDeductionFailedEvent createProductDeductionFailedEvent() {
         ProductDeductionFailedEvent.ProductDeductionFailedData failedData =
-                new ProductDeductionFailedEvent.ProductDeductionFailedData(orderId, quantity);
+                new ProductDeductionFailedEvent.ProductDeductionFailedData(orderId, quantity, currentStock);
 
         return new ProductDeductionFailedEvent(
                 productId,
@@ -246,6 +254,18 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
                 failedData,
                 LocalDateTime.now()
         );
+    }
+
+    @Test
+    void orderDuplicatedCheckTest() {
+        // given
+        String orderRequestId = "orderRequestId";
+        OrderRequestDTO orderRequestDTO = new OrderRequestDTO(orderRequestId, quantity);
+
+        orderController.orderProduct(userId, productId, orderRequestDTO);
+
+        // then
+        Assertions.assertThrows(OrderDuplicatedException.class, () -> orderController.orderProduct(userId, productId, orderRequestDTO));
     }
 
 }

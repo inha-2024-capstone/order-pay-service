@@ -21,6 +21,8 @@ import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.exception.OrderNotFoundException;
 import com.project.yogerOrder.order.repository.OrderRepository;
+import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
+import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
 import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -37,10 +39,19 @@ public class OrderService {
 
     private final OrderEventProducer orderEventProducer;
 
+    private final OrderDuplicateCheckService orderDuplicateCheckService;
+
 
     // CREATE
     @Transactional
     public Long orderProduct(Long userId, Long productId, OrderRequestDTO orderRequestDTO) {
+        try {
+            orderDuplicateCheckService.register(orderRequestDTO.orderRequestId());
+        } catch (OrderDuplicatedException e) {
+            log.warn("Duplicated order request. orderRequestId: {}", orderRequestDTO.orderRequestId());
+            throw e;
+        }
+
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
 
