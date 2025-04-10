@@ -14,6 +14,7 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.project.yogerOrder.global.support.DBInitializer;
+import com.redis.testcontainers.RedisContainer;
 
 @Testcontainers
 @ActiveProfiles("test")
@@ -40,6 +41,21 @@ public abstract class UsingTestContainerTest {
         registry.add("kafka.producer.bootstrap-servers", () -> bootstrapServers);
         registry.add("kafka.consumer.bootstrap-servers", () -> bootstrapServers);
     }
+
+    @Container
+    static final RedisContainer REDIS_CONTAINER = new RedisContainer("redis:7.0.11-alpine");
+
+    @DynamicPropertySource
+    private static void redisContainerProperties(DynamicPropertyRegistry registry) {
+        String redisHost = REDIS_CONTAINER.getHost();
+        Integer redisPort = REDIS_CONTAINER.getFirstMappedPort();
+        registry.add("spring.redis.host", () -> redisHost);
+        registry.add("spring.redis.port", () -> redisPort);
+        registry.add("spring.data.redis.host", () -> redisHost);
+        registry.add("spring.data.redis.port", () -> redisPort);
+    }
+
+
 
     @BeforeEach
     void delete() {
