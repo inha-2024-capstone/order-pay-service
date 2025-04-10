@@ -71,6 +71,7 @@ dependencies {
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:mysql'
 	testImplementation 'org.testcontainers:kafka'
+	testImplementation 'com.redis:testcontainers-redis:2.2.2'
 	testImplementation 'org.awaitility:awaitility'
 }
 
