@@ -52,7 +52,7 @@ class OrderServiceTest {
     Long productId = 1L;
     Integer quantity = 1;
     Long userId = 1L;
-    OrderRequestDTO orderRequestDTO = new OrderRequestDTO(1234L, quantity);
+    OrderRequestDTO orderRequestDTO = new OrderRequestDTO("orderRequestId", quantity);
 
     @Test
     void orderProductSuccess() {

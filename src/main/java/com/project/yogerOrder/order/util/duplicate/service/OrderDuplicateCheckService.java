@@ -14,8 +14,8 @@ public class OrderDuplicateCheckService {
 
 	private final OrderDuplicateCheckRepository orderDuplicateCheckRepository;
 
-	public void register(Long orderRequestId) {
-		if (orderDuplicateCheckRepository.findById(String.valueOf(orderRequestId)).isPresent()) {
+	public void register(String orderRequestId) {
+		if (orderDuplicateCheckRepository.findById(orderRequestId).isPresent()) {
 			throw new OrderDuplicatedException();
 		}
 

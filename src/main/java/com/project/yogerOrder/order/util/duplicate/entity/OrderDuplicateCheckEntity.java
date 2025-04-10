@@ -10,5 +10,5 @@ import lombok.AllArgsConstructor;
 public class OrderDuplicateCheckEntity {
 
 	@Id
-	private Long id;
+	private String id;
 }
