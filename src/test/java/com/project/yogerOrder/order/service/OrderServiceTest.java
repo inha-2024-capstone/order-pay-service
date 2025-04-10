@@ -1,5 +1,7 @@
 package com.project.yogerOrder.order.service;
 
+import static org.mockito.BDDMockito.*;
+
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
@@ -23,6 +25,8 @@ import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.repository.OrderRepository;
+import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
+import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(OrderConfig.class)
@@ -37,6 +41,9 @@ class OrderServiceTest {
     @Mock
     OrderEventProducer orderEventProducer;
 
+    @Mock
+    OrderDuplicateCheckService orderDuplicateCheckService;
+
     @InjectMocks
     OrderService orderService;
 
@@ -45,7 +52,7 @@ class OrderServiceTest {
     Long productId = 1L;
     Integer quantity = 1;
     Long userId = 1L;
-    OrderRequestDTO orderRequestDTO = new OrderRequestDTO(quantity);
+    OrderRequestDTO orderRequestDTO = new OrderRequestDTO(1234L, quantity);
 
     @Test
     void orderProductSuccess() {
@@ -64,6 +71,18 @@ class OrderServiceTest {
         Assertions.assertThat(orderCaptor.getValue().getProductId()).isEqualTo(productId);
         Assertions.assertThat(orderCaptor.getValue().getQuantity()).isEqualTo(quantity);
         Assertions.assertThat(orderCaptor.getValue().getBuyerId()).isEqualTo(userId);
+    }
+
+    @Test
+    void orderProductDuplicate() {
+        // when
+        doThrow(new OrderDuplicatedException())
+            .when(orderDuplicateCheckService)
+            .register(orderRequestDTO.orderRequestId());
+
+        // then
+        Assertions.assertThatThrownBy(() -> orderService.orderProduct(userId, productId, orderRequestDTO))
+                .isInstanceOf(OrderDuplicatedException.class);
     }
 
     @ParameterizedTest
