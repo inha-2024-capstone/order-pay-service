@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -32,7 +31,6 @@ import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.enums.PGState;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
-import com.project.yogerOrder.product.dto.response.PriceByQuantity;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.service.ProductService;
 
@@ -96,9 +94,7 @@ class PaymentServiceTest {
 
             this.requestDTO = new VerifyPaymentRequestDTO(impUid, merchantUid);
             this.pgInform = new PGPaymentInformResponseDTO(impUid, merchantUid, totalAmount, PGState.PAID);
-            PriceByQuantity priceByQuantity1 = new PriceByQuantity(3, productPrice);
-            PriceByQuantity priceByQuantity2 = new PriceByQuantity(10, (int) (productPrice * 0.9));
-            this.productResponseDTO = new ProductResponseDTO(productId, List.of(priceByQuantity1, priceByQuantity2));
+            this.productResponseDTO = new ProductResponseDTO(productId, productPrice, 3);
             this.orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
             ReflectionTestUtils.setField(orderEntity, "id", orderId);
             PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(impUid, orderId, totalAmount, userId);
