@@ -1,14 +1,15 @@
 package com.project.yogerOrder.payment.event;
 
-import com.project.yogerOrder.payment.entity.PaymentEntity;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.project.yogerOrder.payment.entity.PaymentEntity;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record PaymentCanceledEvent(@NotBlank String paymentId, @NotBlank String eventId, @NotBlank PaymentEventType eventType,
-                                   @NotNull PaymentCanceledEvent.PaymentCanceledData data, @NotNull LocalDateTime occurrenceTime) {
+                                   @NotNull PaymentCanceledData data, @NotNull LocalDateTime occurrenceDateTime) {
 
     public record PaymentCanceledData(@NotNull Long userId, @NotNull Long orderId, @NotNull Integer totalPrice) {
     }
