@@ -24,6 +24,7 @@ import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
 import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
+import com.project.yogerOrder.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,8 @@ public class OrderService {
 
     private final OrderDuplicateCheckService orderDuplicateCheckService;
 
+    private final ProductService productService;
+
 
     // CREATE
     @Transactional
@@ -51,6 +54,8 @@ public class OrderService {
             log.warn("Duplicated order request. orderRequestId: {}", orderRequestDTO.orderRequestId());
             throw e;
         }
+
+        productService.decreaseStock(productId, orderRequestDTO.quantity());
 
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, orderRequestDTO.quantity(), userId);
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
