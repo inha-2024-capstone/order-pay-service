@@ -10,5 +10,5 @@ public interface ProductService {
     
     void decreaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException;
 
-    void increaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException;
+    void updateStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException;
 }
