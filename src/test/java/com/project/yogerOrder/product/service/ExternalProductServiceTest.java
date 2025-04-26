@@ -1,13 +1,8 @@
 package com.project.yogerOrder.product.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.yogerOrder.global.exception.CustomExceptionEnum;
-import com.project.yogerOrder.product.config.ProductConfig;
-import com.project.yogerOrder.product.dto.response.PriceByQuantity;
-import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
-import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.util.List;
-
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.yogerOrder.global.exception.CustomExceptionEnum;
+import com.project.yogerOrder.product.config.ProductConfig;
+import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
+import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
+import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
 
 @RestClientTest(value = {
         ProductConfig.class,
@@ -48,10 +46,10 @@ class ExternalProductServiceTest {
     void findById() throws JsonProcessingException {
         // given
         Long productId = 1L;
-        Integer confirmedPrice = 900;
+        Integer price = 900;
+        Integer stock = 10;
 
-        PriceByQuantity priceByQuantity = new PriceByQuantity(3, confirmedPrice);
-        ProductResponseDTO expected = new ProductResponseDTO(productId, List.of(priceByQuantity));
+        ProductResponseDTO expected = new ProductResponseDTO(productId, price, stock);
 
         // when
         mockServer.expect(requestTo(config.url() + "/" + productId)).andRespond(withSuccess(
