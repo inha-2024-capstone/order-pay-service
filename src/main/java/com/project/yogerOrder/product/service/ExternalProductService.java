@@ -1,12 +1,5 @@
 package com.project.yogerOrder.product.service;
 
-import com.project.yogerOrder.product.config.ProductConfig;
-import com.project.yogerOrder.product.dto.request.ChangeStockRequestDTO;
-import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.exception.ProductNotFoundException;
-import com.project.yogerOrder.product.exception.ProductServerStateException;
-import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
-import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -14,8 +7,15 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import com.project.yogerOrder.product.config.ProductConfig;
+import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
+import com.project.yogerOrder.product.exception.ProductNotFoundException;
+import com.project.yogerOrder.product.exception.ProductServerStateException;
+import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
+import com.project.yogerOrder.product.exception.handler.ProductServerErrorHandler;
+
 @Service
-public class ExternalProductService implements ProductService {
+public class ExternalProductService {
 
     private final RestClient restClient;
 
@@ -34,29 +34,10 @@ public class ExternalProductService implements ProductService {
     }
 
 
-    @Override
     public ProductResponseDTO findById(Long productId) throws ProductServerStateException, ProductNotFoundException {
         return restClient.get()
                 .uri("/{productId}", productId)
                 .retrieve()
                 .body(ProductResponseDTO.class);
-    }
-
-    private void changeStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException {
-        restClient.patch()
-                .uri("/{productId}/stock/change", productId)
-                .body(new ChangeStockRequestDTO(quantity))
-                .retrieve()
-                .toBodilessEntity();
-    }
-
-    @Override
-    public void decreaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException {
-        changeStock(productId, -quantity);
-    }
-
-    @Override
-    public void increaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException {
-        changeStock(productId, quantity);
     }
 }
