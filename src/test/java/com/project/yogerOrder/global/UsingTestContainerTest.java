@@ -14,15 +14,19 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.project.yogerOrder.global.support.DBInitializer;
+import com.project.yogerOrder.global.support.RedisInitializer;
 import com.redis.testcontainers.RedisContainer;
 
 @Testcontainers
 @ActiveProfiles("test")
-@Import({DBInitializer.class, KafkaTestConfig.class})
+@Import({DBInitializer.class, RedisInitializer.class, KafkaTestConfig.class})
 public abstract class UsingTestContainerTest {
 
     @Autowired
     private DBInitializer dbInitializer;
+
+    @Autowired
+    private RedisInitializer redisInitializer;
 
     @Container
     @ServiceConnection
@@ -56,9 +60,9 @@ public abstract class UsingTestContainerTest {
     }
 
 
-
     @BeforeEach
     void delete() {
         dbInitializer.clear();
+        redisInitializer.clear();
     }
 }
