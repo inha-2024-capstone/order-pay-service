@@ -23,6 +23,7 @@ import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.product.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
+import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -126,6 +127,21 @@ public class KafkaConfig {
                     consumerConfig(),
                     new StringDeserializer(),
                     new JsonDeserializer<>(ProductDeductionFailedEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+        @Bean(PRODUCT_UPDATED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, ProductUpdatedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(ProductUpdatedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
