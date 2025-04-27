@@ -27,6 +27,7 @@ import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
+import com.project.yogerOrder.product.service.ProductService;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(OrderConfig.class)
@@ -43,6 +44,9 @@ class OrderServiceTest {
 
     @Mock
     OrderDuplicateCheckService orderDuplicateCheckService;
+
+    @Mock
+    ProductService productService;
 
     @InjectMocks
     OrderService orderService;

@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -34,6 +35,7 @@ import com.project.yogerOrder.product.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.ProductEventType;
+import com.project.yogerOrder.product.service.ProductService;
 
 import jakarta.persistence.EntityManager;
 
@@ -54,6 +56,9 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     @Autowired
     TransactionTemplate transactionTemplate;
+
+    @MockBean
+    ProductService productService;
 
     private static final Long productId = 1L;
     private static final Integer quantity = 2;
