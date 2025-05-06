@@ -73,6 +73,7 @@ dependencies {
 	testImplementation 'org.testcontainers:mysql'
 	testImplementation 'org.testcontainers:kafka'
 	testImplementation 'com.redis:testcontainers-redis:2.2.2'
+	testImplementation 'org.testcontainers:mongodb'
 	testImplementation 'org.awaitility:awaitility'
 }
 
