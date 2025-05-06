@@ -61,7 +61,6 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     private static final Integer totalPrice = 1000;
     private static final String paymentId = "4";
     private static final Long orderId = 1L;
-    private static final Integer currentStock = 3;
 
 
     @ParameterizedTest
@@ -219,7 +218,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     private static ProductDeductionFailedEvent createProductDeductionFailedEvent() {
         ProductDeductionFailedEvent.ProductDeductionFailedData failedData =
-                new ProductDeductionFailedEvent.ProductDeductionFailedData(orderId, quantity, currentStock);
+                new ProductDeductionFailedEvent.ProductDeductionFailedData(orderId, quantity);
 
         return new ProductDeductionFailedEvent(
                 productId,
