@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -59,6 +60,16 @@ public abstract class UsingTestContainerTest {
         registry.add("spring.data.redis.port", () -> redisPort);
     }
 
+    @Container
+    static final MongoDBContainer MONGO_CONTAINER = new MongoDBContainer("mongo:8.0.1")
+        .withCommand("--replSet", "rs0");
+
+    @DynamicPropertySource
+    private static void mongoContainerProperties(DynamicPropertyRegistry registry) {
+        String mongoHost = MONGO_CONTAINER.getHost();
+        Integer mongoPort = MONGO_CONTAINER.getFirstMappedPort();
+        registry.add("spring.data.mongodb.uri", () -> "mongodb://" + mongoHost + ":" + mongoPort);
+    }
 
     @BeforeEach
     void delete() {
