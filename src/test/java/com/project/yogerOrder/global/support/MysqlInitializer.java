@@ -1,19 +1,21 @@
 package com.project.yogerOrder.global.support;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestComponent;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestComponent;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @TestComponent
-public class DBInitializer {
+public class MysqlInitializer {
 
     private static final int OFF = 0;
     private static final int ON = 1;

@@ -13,17 +13,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import com.project.yogerOrder.global.support.DBInitializer;
+import com.project.yogerOrder.global.support.MysqlInitializer;
 import com.project.yogerOrder.global.support.RedisInitializer;
 import com.redis.testcontainers.RedisContainer;
 
 @Testcontainers
 @ActiveProfiles("test")
-@Import({DBInitializer.class, RedisInitializer.class, KafkaTestConfig.class})
+@Import({MysqlInitializer.class, RedisInitializer.class, KafkaTestConfig.class})
 public abstract class UsingTestContainerTest {
 
     @Autowired
-    private DBInitializer dbInitializer;
+    private MysqlInitializer mysqlInitializer;
 
     @Autowired
     private RedisInitializer redisInitializer;
@@ -62,7 +62,7 @@ public abstract class UsingTestContainerTest {
 
     @BeforeEach
     void delete() {
-        dbInitializer.clear();
+        mysqlInitializer.clear();
         redisInitializer.clear();
     }
 }
