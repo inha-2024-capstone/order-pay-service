@@ -1,14 +1,12 @@
 package com.project.yogerOrder.product.service;
 
+import com.project.yogerOrder.product.dto.request.UpsertProductRequestDTO;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
-import com.project.yogerOrder.product.exception.ProductServerStateException;
 
 public interface ProductService {
 
-    ProductResponseDTO findById(Long productId) throws ProductServerStateException, ProductNotFoundException;
-    
-    void decreaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException;
+    void upsertProduct(UpsertProductRequestDTO upsertProductRequestDTO);
 
-    void increaseStock(Long productId, Integer quantity) throws ProductServerStateException, ProductNotFoundException;
+    ProductResponseDTO findById(Long productId) throws ProductNotFoundException;
 }

@@ -23,6 +23,7 @@ import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.product.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
+import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -35,6 +36,7 @@ public class KafkaConfig {
     public static final String ORDER_GROUP = "order-group";
     public static final String PAYMENT_GROUP = "payment-group";
     public static final String CART_GROUP = "cart-group";
+    public static final String PRODUCT_GROUP = "product-group";
 
     @Configuration
     @RequiredArgsConstructor
@@ -83,6 +85,7 @@ public class KafkaConfig {
 
         public static final String DEDUCTION_COMPLETED_FACTORY = "productDeductionCompletedFactory";
         public static final String DEDUCTION_FAILED_FACTORY = "productDeductionFailedFactory";
+        public static final String PRODUCT_UPDATED_FACTORY = "productUpdatedFactory";
 
         public static final String PAYMENT_COMPLETED_FACTORY = "paymentCompletedFactory";
         public static final String PAYMENT_CANCELED_FACTORY = "paymentCanceledFactory";
@@ -126,6 +129,21 @@ public class KafkaConfig {
                 consumerConfig(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(ProductDeductionFailedEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+        @Bean(PRODUCT_UPDATED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, ProductUpdatedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(ProductUpdatedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -190,7 +208,8 @@ public class KafkaConfig {
     public KafkaAdmin.NewTopics productTopics() {
         return new KafkaAdmin.NewTopics(
             TopicBuilder.name(ProductTopic.DEDUCTION_COMPLETED).build(),
-            TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build()
+            TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build(),
+            TopicBuilder.name(ProductTopic.UPDATED).build()
         );
     }
 

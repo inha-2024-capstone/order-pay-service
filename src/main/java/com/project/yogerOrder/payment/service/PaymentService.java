@@ -64,8 +64,8 @@ public class PaymentService {
             return;
         }
 
-        Integer originalMaxPrice = productService.findById(orderEntity.getProductId()).originalMaxPrice();
-        if (pgInform.amount() != (originalMaxPrice * orderEntity.getQuantity())) { // 내부
+        Integer price = productService.findById(orderEntity.getProductId()).price();
+        if (pgInform.amount() != (price * orderEntity.getQuantity())) { // 내부
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
             pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
