@@ -30,6 +30,7 @@ public class CartService {
 		cartRepository.save(cart);
 	}
 
+	@Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
 	public CartEntity getCart(Long userId) {
 		Optional<CartEntity> optionalCart = cartRepository.findById(userId);
 		if (optionalCart.isPresent()) {
