@@ -20,7 +20,7 @@ public class ProductEventConsumer {
 
 	@KafkaListener(topics = ProductTopic.UPDATED, groupId = KafkaConfig.PRODUCT_GROUP,
 		containerFactory = KafkaConfig.KafkaConsumerConfig.PRODUCT_UPDATED_FACTORY)
-	public void productDeductionCompleted(ProductUpdatedEvent event, Acknowledgment acknowledgment) {
+	public void productUpdated(ProductUpdatedEvent event, Acknowledgment acknowledgment) {
 		productService.upsertProduct(new UpsertProductRequestDTO(
 			event.productId(),
 			event.data().name(),
