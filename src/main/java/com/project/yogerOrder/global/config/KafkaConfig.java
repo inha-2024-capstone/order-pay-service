@@ -1,16 +1,7 @@
 package com.project.yogerOrder.global.config;
 
-import com.project.yogerOrder.order.config.OrderTopic;
-import com.project.yogerOrder.order.event.OrderCanceledEvent;
-import com.project.yogerOrder.payment.config.PaymentTopic;
-import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
-import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.product.config.ProductTopic;
-import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
-import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
+import java.util.HashMap;
+
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -24,7 +15,18 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import java.util.HashMap;
+import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.OrderCanceledEvent;
+import com.project.yogerOrder.payment.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
+import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
+import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
+import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class KafkaConfig {
 
     public static final String ORDER_GROUP = "order-group";
     public static final String PAYMENT_GROUP = "payment-group";
+    public static final String CART_GROUP = "cart-group";
 
     @Configuration
     @RequiredArgsConstructor
@@ -76,6 +79,7 @@ public class KafkaConfig {
         }
 
         public static final String ORDER_CANCELED_FACTORY = "orderCanceledFactory";
+        public static final String ORDER_COMPLETED_FACTORY = "orderCanceledFactory";
 
         public static final String DEDUCTION_COMPLETED_FACTORY = "productDeductionCompletedFactory";
         public static final String DEDUCTION_FAILED_FACTORY = "productDeductionFailedFactory";
@@ -89,9 +93,9 @@ public class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, OrderCanceledEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
-                    consumerConfig(),
-                    new StringDeserializer(),
-                    new JsonDeserializer<>(OrderCanceledEvent.class, false)
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(OrderCanceledEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -104,9 +108,9 @@ public class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory<String, ProductDeductionCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, ProductDeductionCompletedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
-                    consumerConfig(),
-                    new StringDeserializer(),
-                    new JsonDeserializer<>(ProductDeductionCompletedEvent.class, false)
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(ProductDeductionCompletedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -119,9 +123,9 @@ public class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory<String, ProductDeductionFailedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, ProductDeductionFailedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
-                    consumerConfig(),
-                    new StringDeserializer(),
-                    new JsonDeserializer<>(ProductDeductionFailedEvent.class, false)
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(ProductDeductionFailedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -135,9 +139,9 @@ public class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, PaymentCompletedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
-                    consumerConfig(),
-                    new StringDeserializer(),
-                    new JsonDeserializer<>(PaymentCompletedEvent.class, false)
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(PaymentCompletedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -150,9 +154,9 @@ public class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory<String, PaymentCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, PaymentCanceledEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
-                    consumerConfig(),
-                    new StringDeserializer(),
-                    new JsonDeserializer<>(PaymentCanceledEvent.class, false)
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(PaymentCanceledEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);
@@ -164,29 +168,29 @@ public class KafkaConfig {
     @Bean
     public KafkaAdmin.NewTopics orderTopics() {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name(OrderTopic.CREATED).build(),
-                TopicBuilder.name(OrderTopic.COMPLETED).build(),
-                TopicBuilder.name(OrderTopic.CANCELED).build(),
-                TopicBuilder.name(OrderTopic.DEDUCTION_AFTER_CANCELED).build(),
-                TopicBuilder.name(OrderTopic.PAYMENT_COMPLETED_AFTER_CANCELED).build(),
-                TopicBuilder.name(OrderTopic.ERRORED).build()
+            TopicBuilder.name(OrderTopic.CREATED).build(),
+            TopicBuilder.name(OrderTopic.COMPLETED).build(),
+            TopicBuilder.name(OrderTopic.CANCELED).build(),
+            TopicBuilder.name(OrderTopic.DEDUCTION_AFTER_CANCELED).build(),
+            TopicBuilder.name(OrderTopic.PAYMENT_COMPLETED_AFTER_CANCELED).build(),
+            TopicBuilder.name(OrderTopic.ERRORED).build()
         );
     }
 
     @Bean
     public KafkaAdmin.NewTopics paymentTopics() {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name(PaymentTopic.COMPLETED).build(),
-                TopicBuilder.name(PaymentTopic.CANCELED).build(),
-                TopicBuilder.name(PaymentTopic.ERRORED).build()
+            TopicBuilder.name(PaymentTopic.COMPLETED).build(),
+            TopicBuilder.name(PaymentTopic.CANCELED).build(),
+            TopicBuilder.name(PaymentTopic.ERRORED).build()
         );
     }
 
     @Bean
     public KafkaAdmin.NewTopics productTopics() {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name(ProductTopic.DEDUCTION_COMPLETED).build(),
-                TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build()
+            TopicBuilder.name(ProductTopic.DEDUCTION_COMPLETED).build(),
+            TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build()
         );
     }
 

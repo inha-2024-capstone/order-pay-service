@@ -7,22 +7,31 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import com.project.yogerOrder.global.support.DBInitializer;
+import com.project.yogerOrder.global.support.MongoDBInitializer;
+import com.project.yogerOrder.global.support.MysqlInitializer;
+import com.project.yogerOrder.global.support.RedisInitializer;
 import com.redis.testcontainers.RedisContainer;
 
 @Testcontainers
 @ActiveProfiles("test")
-@Import({DBInitializer.class, KafkaTestConfig.class})
+@Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class, KafkaTestConfig.class})
 public abstract class UsingTestContainerTest {
 
     @Autowired
-    private DBInitializer dbInitializer;
+    private MysqlInitializer mysqlInitializer;
+
+    @Autowired
+    private RedisInitializer redisInitializer;
+
+    @Autowired
+    private MongoDBInitializer mongoInitializer;
 
     @Container
     @ServiceConnection
@@ -55,10 +64,21 @@ public abstract class UsingTestContainerTest {
         registry.add("spring.data.redis.port", () -> redisPort);
     }
 
+    @Container
+    static final MongoDBContainer MONGO_CONTAINER = new MongoDBContainer("mongo:8.0.1")
+        .withCommand("--replSet", "rs0");
 
+    @DynamicPropertySource
+    private static void mongoContainerProperties(DynamicPropertyRegistry registry) {
+        String mongoHost = MONGO_CONTAINER.getHost();
+        Integer mongoPort = MONGO_CONTAINER.getFirstMappedPort();
+        registry.add("spring.data.mongodb.uri", () -> "mongodb://" + mongoHost + ":" + mongoPort);
+    }
 
     @BeforeEach
     void delete() {
-        dbInitializer.clear();
+        mysqlInitializer.clear();
+        redisInitializer.clear();
+        mongoInitializer.clear();
     }
 }
