@@ -23,7 +23,7 @@ public class CartEventConsumer {
 
 	@KafkaListener(topics = OrderTopic.COMPLETED, groupId = KafkaConfig.CART_GROUP,
 		containerFactory = KafkaConfig.KafkaConsumerConfig.ORDER_COMPLETED_FACTORY)
-	public void productDeductionCompleted(OrderCompletedEvent event, Acknowledgment acknowledgment) {
+	public void orderCompleted(OrderCompletedEvent event, Acknowledgment acknowledgment) {
 		DeleteProductFromCartRequestDTO requestDTO = new DeleteProductFromCartRequestDTO(
 			event.getProducts().stream().map(Map.Entry::getKey).toList()
 		);
