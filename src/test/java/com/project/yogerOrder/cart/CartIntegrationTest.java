@@ -1,13 +1,10 @@
 package com.project.yogerOrder.cart;
 
 import static org.awaitility.Awaitility.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,8 +18,9 @@ import com.project.yogerOrder.cart.dto.request.UpsertProductToCartRequestDTO;
 import com.project.yogerOrder.cart.dto.response.CartResponseDTO;
 import com.project.yogerOrder.global.UsingTestContainerTest;
 import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.event.OrderCompletedEvent;
-import com.project.yogerOrder.order.event.OrderEventType;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class CartIntegrationTest extends UsingTestContainerTest {
@@ -80,40 +78,30 @@ public class CartIntegrationTest extends UsingTestContainerTest {
 		List<CartResponseDTO.CartResponseData> cartItems = cartController.getCart(userId).getBody().cartItems();
 
 		// then
-		Assertions.assertThat(cartItems).doesNotContain(new CartResponseDTO.CartResponseData(requestDTO1.productId(), any()));
-		Assertions.assertThat(cartItems).doesNotContain(new CartResponseDTO.CartResponseData(requestDTO2.productId(), any()));
+		Assertions.assertThat(cartItems).noneMatch(item -> item.productId().equals(requestDTO1.productId()));
+		Assertions.assertThat(cartItems).noneMatch(item -> item.productId().equals(requestDTO2.productId()));
 		Assertions.assertThat(cartItems).contains(new CartResponseDTO.CartResponseData(requestDTO3.productId(), requestDTO3.quantity()));
 	}
 
 	@Test
 	void deleteItemsByEvent() {
 		// given
+		Integer totalPrice = 1000;
+
 		cartController.upsertItem(userId, requestDTO1);
 		cartController.upsertItem(userId, requestDTO2);
 		cartController.upsertItem(userId, requestDTO3);
 
-		OrderCompletedEvent.OrderCompletedProductData data1 = new OrderCompletedEvent.OrderCompletedProductData(
-			requestDTO1.productId(), requestDTO1.quantity());
-		OrderCompletedEvent.OrderCompletedProductData data2 = new OrderCompletedEvent.OrderCompletedProductData(
-			requestDTO2.productId(), requestDTO2.quantity());
-		OrderCompletedEvent.OrderCompletedData orderCompletedData = new OrderCompletedEvent.OrderCompletedData(
-			userId, List.of(data1, data2)
-		);
+		OrderItem data1 = new OrderItem(requestDTO1.productId(), requestDTO1.quantity());
+		OrderItem data2 = new OrderItem(requestDTO2.productId(), requestDTO2.quantity());
 
-		Long orderId = 1L;
-		String eventId = UUID.randomUUID().toString();
+
+		OrderEntity orderEntity = OrderEntity.createPendingOrder(List.of(data1, data2), totalPrice, userId);
+		OrderCompletedEvent orderCompletedEvent = OrderCompletedEvent.from(orderEntity);
 
 		// when
 		kafkaTemplate.executeInTransaction(kafkaTemplate ->
-			kafkaTemplate.send(
-			OrderTopic.COMPLETED,
-			new OrderCompletedEvent(
-				orderId,
-				eventId,
-				OrderEventType.COMPLETED,
-				orderCompletedData,
-				LocalDateTime.now()
-			))
+			kafkaTemplate.send(OrderTopic.getTopicByEvent(orderCompletedEvent.eventType()), orderCompletedEvent)
 		);
 
 		// then
@@ -123,8 +111,8 @@ public class CartIntegrationTest extends UsingTestContainerTest {
 			.untilAsserted(() -> {
 				List<CartResponseDTO.CartResponseData> cartItems = cartController.getCart(userId).getBody().cartItems();
 
-				Assertions.assertThat(cartItems).doesNotContain(new CartResponseDTO.CartResponseData(requestDTO1.productId(), any()));
-				Assertions.assertThat(cartItems).doesNotContain(new CartResponseDTO.CartResponseData(requestDTO2.productId(), any()));
+				Assertions.assertThat(cartItems).noneMatch(item -> item.productId().equals(requestDTO1.productId()));
+				Assertions.assertThat(cartItems).noneMatch(item -> item.productId().equals(requestDTO2.productId()));
 				Assertions.assertThat(cartItems).contains(new CartResponseDTO.CartResponseData(requestDTO3.productId(), requestDTO3.quantity()));
 			});
 	}
