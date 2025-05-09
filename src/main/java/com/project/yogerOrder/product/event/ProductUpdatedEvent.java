@@ -19,6 +19,20 @@ public record ProductUpdatedEvent(@NotNull Long productId, @NotBlank String even
 		);
 	}
 
+
+	public String getName() {
+		return data().name();
+	}
+
+	public Integer getStock() {
+		return data().stock();
+	}
+
+	public Integer getPrice() {
+		return data().price();
+	}
+
+
     private record ProductUpdatedData(@NotBlank String name, @NotNull Integer stock, @NotNull Integer price) {
     }
 }
