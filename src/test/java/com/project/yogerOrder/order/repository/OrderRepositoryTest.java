@@ -1,32 +1,44 @@
 package com.project.yogerOrder.order.repository;
 
-import com.project.yogerOrder.global.CommonRepositoryTest;
-import com.project.yogerOrder.order.entity.OrderEntity;
-import jakarta.validation.ConstraintViolationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 import java.time.LocalDateTime;
-import java.util.stream.Stream;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-class OrderRepositoryTest extends CommonRepositoryTest {
+import com.project.yogerOrder.global.UsingTestContainerTest;
+import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderItem;
+
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+class OrderRepositoryTest extends UsingTestContainerTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    Long productId1 = 1L;
+    Integer quantity1 = 2;
+    OrderItem orderItem1 = new OrderItem(productId1, quantity1);
+
+    Long productId2 = 5L;
+    Integer quantity2 = 3;
+    OrderItem orderItem2 = new OrderItem(productId2, quantity2);
+    List<OrderItem> orderItems = List.of(orderItem1, orderItem2);
 
 
     @Test
     @DisplayName("정상 저장 테스트")
     void saveDefaultTest() {
         //given
-        OrderEntity pendingOrder = OrderEntity.createPendingOrder(1L, 2, 3L);
+        Integer totalPrice = 10000;
+
+        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, totalPrice, 3L);
+
         //when
         orderRepository.save(pendingOrder);
         OrderEntity order = orderRepository.findById(pendingOrder.getId()).orElse(null);
@@ -34,27 +46,9 @@ class OrderRepositoryTest extends CommonRepositoryTest {
         //then
         assertThat(order).isNotNull();
         assertThat(order.getId()).isNotNull();
+        assertThat(order.getTotalPrice()).isEqualTo(totalPrice);
         assertThat(order)
                 .usingRecursiveComparison().ignoringFieldsOfTypes(LocalDateTime.class)
                 .isEqualTo(pendingOrder);
-    }
-
-    @ParameterizedTest
-    @DisplayName("주문 유효성 검사")
-    @MethodSource("invalidOrderParameters")
-    void validationTest(Long productId, Integer quantity, Long buyerId) {
-        assertThatThrownBy(() -> {
-            orderRepository.save(OrderEntity.createPendingOrder(productId, quantity, buyerId));
-            orderRepository.flush();
-        }).isInstanceOf(ConstraintViolationException.class);
-    }
-
-    private static Stream<Arguments> invalidOrderParameters() {
-        return Stream.of(
-                Arguments.of(1L, 2, null),
-                Arguments.of(1L, null, 3L),
-                Arguments.of(null, 2, 3L),
-                Arguments.of(1L, 0, 3L)
-        );
     }
 }

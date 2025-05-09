@@ -1,10 +1,11 @@
 package com.project.yogerOrder.global;
 
-import com.project.yogerOrder.global.config.JpaConfig;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+
+import com.project.yogerOrder.global.config.JpaConfig;
 
 
 @DataJpaTest
