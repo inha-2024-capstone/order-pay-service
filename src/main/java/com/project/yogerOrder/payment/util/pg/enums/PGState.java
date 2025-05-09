@@ -8,9 +8,9 @@ public enum PGState {
     }
 
     public static PGState match(String status) {
-        if (status.equals("ready")) {
+        if (status.equalsIgnoreCase("ready")) {
             return READY;
-        } else if (status.equals("paid")) {
+        } else if (status.equalsIgnoreCase("paid")) {
             return PAID;
         } else {
             return FAILED;
