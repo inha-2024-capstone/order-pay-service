@@ -1,7 +1,7 @@
 package com.project.yogerOrder.global;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import java.util.HashMap;
+
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,7 +12,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import java.util.HashMap;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @TestConfiguration
 @EnableConfigurationProperties(KafkaTestConfig.KafkaProducerConfigValue.class)
@@ -31,7 +32,6 @@ public class KafkaTestConfig {
 
     private HashMap<String, Object> producerConfig() {
         HashMap<String, Object> config = new HashMap<>();
-        System.out.println("configValue.bootstrapServers = " + configValue.bootstrapServers);
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
