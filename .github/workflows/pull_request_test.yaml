@@ -1,0 +1,57 @@
+name: PR Test
+
+on:
+    pull_request_target:
+        branches:
+            - develop
+
+jobs:
+    test:
+        permissions:
+            pull-requests: write
+            checks: write
+            contents: read
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4.2.2
+
+            - name: Cache Gradle dependencies
+              uses: actions/cache @v4
+              with:
+                  # 캐시할 파일 또는 디렉토리 경로 (여러 줄 지정 가능)
+                  path: |
+                      ~/.gradle/caches
+                      ~/.gradle/wrapper
+                  # 캐시의 고유 키. 파일 해시 등을 사용하여 의존성이 변경될 때마다 새로운 캐시를 생성합니다.
+                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle/wrapper/gradle-wrapper.properties') }}
+                  # 키가 정확히 일치하지 않는 경우, 복원할 수 있는 후보 키 목록 (restore-keys)
+                  restore-keys: |
+                      ${{ runner.os }}-gradle-  
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4.7.0
+              with:
+                  java-version: '21'
+                  distribution: 'corretto'
+            - name: Make application-test.yaml
+              run: |
+                cd ./src/test/resources
+                touch ./application-test.yml
+                echo "${{ secrets.test_application_yml }}" > ./application-test.yml
+              shell: bash
+
+            - name: Grant execute permission for gradlew
+              run: chmod +x gradlew
+
+            - name: Test with Gradle
+              run: ./gradlew --info test
+
+                # Test 후 Report 생성
+            - name: Publish Test Results
+              uses: EnricoMi/publish-unit-test-result-action@v2
+              if: always()
+              with:
+                  junit_files: '**/build/test-results/test/TEST-*.xml'
