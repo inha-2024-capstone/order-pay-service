@@ -2,7 +2,7 @@
 
 ---
 
-작업 내용
+<!-- 작업 내용 -->
 
 <br>
 
@@ -10,7 +10,7 @@
 
 ---
 
-close ${issue_number}
+- close #issue_number
 
 ### 기타 사항
 
