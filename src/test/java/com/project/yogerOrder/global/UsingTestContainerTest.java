@@ -67,15 +67,10 @@ public abstract class UsingTestContainerTest {
     }
 
     @Container
+    @ServiceConnection
     static final MongoDBContainer MONGO_CONTAINER = new MongoDBContainer("mongo:8.0.1")
         .withCommand("--replSet", "rs0");
 
-    @DynamicPropertySource
-    private static void mongoContainerProperties(DynamicPropertyRegistry registry) {
-        String mongoHost = MONGO_CONTAINER.getHost();
-        Integer mongoPort = MONGO_CONTAINER.getFirstMappedPort();
-        registry.add("spring.data.mongodb.uri", () -> "mongodb://" + mongoHost + ":" + mongoPort);
-    }
 
     @BeforeEach
     void delete() {
