@@ -56,7 +56,6 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     ProductService productService;
 
     private static final Long userId = 3L;
-    private static final Integer totalPrice = 1000;
     private static final Long paymentId = 4L;
     private static final String orderId = "tempOrderId";
 
