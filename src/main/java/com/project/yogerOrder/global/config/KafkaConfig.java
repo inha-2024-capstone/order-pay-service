@@ -15,13 +15,13 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.order.event.OrderCompletedEvent;
-import com.project.yogerOrder.payment.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;

@@ -1,4 +1,4 @@
-package com.project.yogerOrder.payment.config;
+package com.project.yogerOrder.payment.event.config;
 
 import com.project.yogerOrder.payment.event.PaymentEventType;
 

@@ -1,4 +1,4 @@
-package com.project.yogerOrder.order.config;
+package com.project.yogerOrder.order.event.config;
 
 import com.project.yogerOrder.order.event.OrderEventType;
 

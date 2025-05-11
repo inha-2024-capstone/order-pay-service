@@ -1,7 +1,7 @@
 package com.project.yogerOrder.payment.event.consumer;
 
 import com.project.yogerOrder.global.config.KafkaConfig;
-import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;

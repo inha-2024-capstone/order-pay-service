@@ -1,4 +1,4 @@
-package com.project.yogerOrder.product.config;
+package com.project.yogerOrder.product.event.config;
 
 public class ProductTopic {
     public static final String DEDUCTION_COMPLETED = "yoger.product.prd.deductionCompleted";

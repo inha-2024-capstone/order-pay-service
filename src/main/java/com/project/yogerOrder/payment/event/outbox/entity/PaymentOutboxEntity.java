@@ -1,7 +1,7 @@
 package com.project.yogerOrder.payment.event.outbox.entity;
 
 import com.project.yogerOrder.global.util.outbox.entity.OutboxEntity;
-import com.project.yogerOrder.payment.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentEventType;
 import jakarta.persistence.Entity;
 import lombok.Getter;

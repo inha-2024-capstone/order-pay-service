@@ -3,7 +3,7 @@ package com.project.yogerOrder.order.event.outbox.entity;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.project.yogerOrder.global.util.outbox.entity.OutboxEntity;
-import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.event.OrderEventType;
 
 import lombok.Getter;

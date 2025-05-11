@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 
 import com.project.yogerOrder.global.config.KafkaConfig;
 import com.project.yogerOrder.order.service.OrderService;
-import com.project.yogerOrder.payment.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 
