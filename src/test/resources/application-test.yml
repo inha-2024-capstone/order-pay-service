@@ -12,6 +12,9 @@ spring:
     threads:
         virtual:
             enabled: true
+    data:
+        mongodb:
+            database: yoger-db
 
 port-one:
     v1:
