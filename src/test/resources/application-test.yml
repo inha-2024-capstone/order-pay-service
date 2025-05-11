@@ -2,12 +2,6 @@ spring:
     application:
         name: yogerOrder
 
-    datasource:
-        url: jdbc:mysql://${DB_URL}:3306/${DB_NAME}?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        username: ${DB_USERNAME}
-        password: ${DB_PASSWORD}
-
     jpa:
         hibernate:
             ddl-auto: create
