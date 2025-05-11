@@ -6,7 +6,29 @@ on:
             - develop
 
 jobs:
+    validate-author:
+        permissions:
+            contents: read
+            pull-requests: read
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Reject if not a collaborator/org member
+              if: >
+                  github.event.pull_request.author_association != 'COLLABORATOR' &&
+                  github.event.pull_request.author_association != 'MEMBER' &&
+                  github.event.pull_request.author_association != 'OWNER'
+              run: |
+                  echo "::error ::PR 작성자에게 권한이 없습니다: '${{ github.event.pull_request.author_association }}'"
+                  exit 1
+
+            - name: Proceed with trusted PR
+              run: echo "✅ PR 작성자가 충분한 권한을 보유하고 있습니다."
+
     test:
+        needs: validate-author
+
         permissions:
             pull-requests: write
             checks: write
@@ -17,12 +39,15 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4.2.2
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
 
             - name: Set up JDK 21
               uses: actions/setup-java@v4.7.0
               with:
                   java-version: '21'
                   distribution: 'corretto'
+
             - name: Make application-test.yaml
               run: |
                 cd ./src/test/resources
