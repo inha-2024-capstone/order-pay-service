@@ -52,7 +52,7 @@ jobs:
               env:
                   V1_APIKEY: ${{ secrets.V1_APIKEY }}
                   V1_APISECRET: ${{ secrets.V1_APISECRET }}
-                  V2_APIKEY: ${{ secrets.V2_APIKEY }}
+                  V2_APISECRET: ${{ secrets.V2_APISECRET }}
               run: |
                   echo "V1_APIKEY=$V1_APIKEY" >> .env
                   echo "V1_APISECRET=$V1_APISECRET" >> .env
