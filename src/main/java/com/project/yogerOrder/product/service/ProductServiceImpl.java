@@ -1,5 +1,7 @@
 package com.project.yogerOrder.product.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +26,12 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public ProductResponseDTO findById(Long productId) throws ProductNotFoundException {
-		ProductEntity productEntity = productRepository.findById(productId).orElseThrow(ProductNotFoundException::new);
+	public List<ProductResponseDTO> findByIds(List<Long> productIds) throws ProductNotFoundException {
+		List<ProductEntity> productEntities = productRepository.findAllById(productIds);
+		if (productEntities.size() != productIds.size()) {
+			throw new ProductNotFoundException();
+		}
 
-		return ProductResponseDTO.from(productEntity);
+		return productEntities.stream().map(ProductResponseDTO::from).toList();
 	}
 }

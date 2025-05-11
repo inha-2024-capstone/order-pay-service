@@ -23,9 +23,9 @@ public class ProductEventConsumer {
 	public void productUpdated(ProductUpdatedEvent event, Acknowledgment acknowledgment) {
 		productService.upsertProduct(new UpsertProductRequestDTO(
 			event.productId(),
-			event.data().name(),
-			event.data().stock(),
-			event.data().price()
+			event.getName(),
+			event.getStock(),
+			event.getPrice()
 		));
 
 		acknowledgment.acknowledge();

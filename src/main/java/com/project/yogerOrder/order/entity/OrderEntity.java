@@ -1,45 +1,43 @@
 package com.project.yogerOrder.order.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import com.project.yogerOrder.global.entity.BaseTimeEntity;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.project.yogerOrder.global.entity.MongoDBBaseTimeEntity;
 import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
 import com.project.yogerOrder.order.util.stateMachine.OrderStaticStateMachine;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderEntity extends BaseTimeEntity {
+@Document(collection = "order")
+public class OrderEntity extends MongoDBBaseTimeEntity<String> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotNull
-    private Long productId;
-
-    @Min(1)
-    @NotNull
-    private Integer quantity;
+    private String id;
 
     @NotNull
     private Long buyerId;
+
+    @NotEmpty
+    private List<OrderItem> orderItems;
+
+    @NotNull
+    @Min(0)
+    private Integer totalPrice;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -48,20 +46,22 @@ public class OrderEntity extends BaseTimeEntity {
     @Version
     private Long version;
 
-    private OrderEntity(Long productId, Integer quantity, Long buyerId, OrderState state) {
-        this.productId = productId;
-        this.quantity = quantity;
+
+    private OrderEntity(List<OrderItem> orderItems, Long buyerId, Integer totalPrice, OrderState state) {
+        this.orderItems = orderItems;
         this.buyerId = buyerId;
+        this.totalPrice = totalPrice;
         this.state = state;
     }
 
-    public static OrderEntity createPendingOrder(Long productId, Integer quantity, Long buyerId) {
-        return new OrderEntity(productId, quantity, buyerId, OrderState.CREATED);
+
+    public static OrderEntity createPendingOrder(List<OrderItem> orderItems, Integer totalPrice, Long buyerId) {
+        return new OrderEntity(orderItems, buyerId, totalPrice, OrderState.CREATED);
     }
 
+
     public Boolean isPayable(Integer validTime) {
-        return ((this.state == OrderState.CREATED) || (this.state == OrderState.STOCK_CONFIRMED))
-                && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
+        return this.state.isPayable() && getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(validTime));
     }
 
     public Boolean changeStateIfChangeable(OrderStateChangeEvent orderStateChangeEvent) {
@@ -71,4 +71,5 @@ public class OrderEntity extends BaseTimeEntity {
 
         return isChanged;
     }
+
 }

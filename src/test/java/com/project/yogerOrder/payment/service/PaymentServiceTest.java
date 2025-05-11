@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -21,10 +22,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.dto.request.ConfirmPaymentRequestDTO;
 import com.project.yogerOrder.payment.dto.request.VerifyPaymentRequestDTO;
-import com.project.yogerOrder.payment.dto.response.PaymentOrderDTO;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
@@ -32,7 +33,6 @@ import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformRespon
 import com.project.yogerOrder.payment.util.pg.enums.PGState;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.service.ProductService;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -52,9 +52,6 @@ class PaymentServiceTest {
     @Mock
     private OrderService orderService;
 
-    @Mock
-    private ProductService productService;
-
     private TestSource source1;
 
     private static class TestSource {
@@ -63,11 +60,8 @@ class PaymentServiceTest {
         Integer productPrice;
         Integer quantity;
         Integer totalAmount;
-        Integer confirmedAmountPerQuantity;
-        Integer refundAmountPerQuantity;
-        Integer refundAmount;
 
-        Long orderId;
+        String orderId;
         Long productId;
         Long userId;
 
@@ -75,30 +69,24 @@ class PaymentServiceTest {
         PGPaymentInformResponseDTO pgInform;
         ProductResponseDTO productResponseDTO;
         OrderEntity orderEntity;
-        PaymentOrderDTO paymentOrderDTO;
 
         public TestSource(String impUid, String merchantUid, Integer productPrice, Integer quantity, Long productId, Long userId) {
             this.impUid = impUid;
             this.merchantUid = merchantUid;
             this.productPrice = productPrice;
             this.quantity = quantity;
-            this.orderId = Long.valueOf(merchantUid);
+            this.orderId = merchantUid;
             this.productId = productId;
             this.userId = userId;
 
             this.totalAmount = productPrice * quantity;
-            this.confirmedAmountPerQuantity = (int) (productPrice * 0.9);
-            this.refundAmountPerQuantity = productPrice - confirmedAmountPerQuantity;
-            this.refundAmount = refundAmountPerQuantity * quantity;
 
 
             this.requestDTO = new VerifyPaymentRequestDTO(impUid, merchantUid);
             this.pgInform = new PGPaymentInformResponseDTO(impUid, merchantUid, totalAmount, PGState.PAID);
             this.productResponseDTO = new ProductResponseDTO(productId, productPrice, 3);
-            this.orderEntity = OrderEntity.createPendingOrder(productId, quantity, userId);
+            this.orderEntity = OrderEntity.createPendingOrder(List.of(new OrderItem(productId, quantity)), totalAmount, userId);
             ReflectionTestUtils.setField(orderEntity, "id", orderId);
-            PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(impUid, orderId, totalAmount, userId);
-            this.paymentOrderDTO = new PaymentOrderDTO(paymentEntity, orderEntity);
         }
     }
 
@@ -117,7 +105,6 @@ class PaymentServiceTest {
         given(paymentRepository.existsByPgPaymentId(any())).willReturn(false);
         given(pgClientService.getInformById(any())).willReturn(source1.pgInform);
         given(orderService.findById(any())).willReturn(source1.orderEntity);
-        given(productService.findById(any())).willReturn(source1.productResponseDTO);
         given(orderService.isPayable(any())).willReturn(true);
 
         // when
@@ -145,7 +132,6 @@ class PaymentServiceTest {
         // then
         verify(pgClientService, times(0)).getInformById(any());
         verify(orderService, times(0)).findById(any());
-        verify(productService, times(0)).findById(any());
         verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
         verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
@@ -163,7 +149,6 @@ class PaymentServiceTest {
         paymentService.verifyPayment(source1.requestDTO);
 
         // then
-        verify(productService, times(0)).findById(any());
         verify(pgClientService, times(0)).refund(any(PGRefundRequestDTO.class));
         verify(paymentTransactionService, times(0)).confirmPayment(any(ConfirmPaymentRequestDTO.class));
     }
@@ -187,7 +172,6 @@ class PaymentServiceTest {
         given(paymentRepository.existsByPgPaymentId(any())).willReturn(false);
         given(pgClientService.getInformById(any())).willReturn(invalidPGInform);
         given(orderService.findById(any())).willReturn(source1.orderEntity);
-        given(productService.findById(any())).willReturn(source1.productResponseDTO);
         lenient().when(orderService.isPayable(source1.orderEntity)).thenReturn(true);
 
         // when

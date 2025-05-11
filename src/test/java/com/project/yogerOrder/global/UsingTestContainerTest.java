@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,6 +22,7 @@ import com.redis.testcontainers.RedisContainer;
 
 @Testcontainers
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class, KafkaTestConfig.class})
 public abstract class UsingTestContainerTest {
 
@@ -65,15 +67,10 @@ public abstract class UsingTestContainerTest {
     }
 
     @Container
+    @ServiceConnection
     static final MongoDBContainer MONGO_CONTAINER = new MongoDBContainer("mongo:8.0.1")
         .withCommand("--replSet", "rs0");
 
-    @DynamicPropertySource
-    private static void mongoContainerProperties(DynamicPropertyRegistry registry) {
-        String mongoHost = MONGO_CONTAINER.getHost();
-        Integer mongoPort = MONGO_CONTAINER.getFirstMappedPort();
-        registry.add("spring.data.mongodb.uri", () -> "mongodb://" + mongoHost + ":" + mongoPort);
-    }
 
     @BeforeEach
     void delete() {

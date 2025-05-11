@@ -3,6 +3,7 @@ package com.project.yogerOrder.order.service;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -20,13 +21,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.order.config.OrderConfig;
+import com.project.yogerOrder.order.dto.request.OrderItemRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.event.producer.OrderEventProducer;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
+import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
+import com.project.yogerOrder.product.service.ProductService;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(OrderConfig.class)
@@ -47,30 +52,53 @@ class OrderServiceTest {
     @InjectMocks
     OrderService orderService;
 
+    @Mock
+    ProductService productService;
 
-    Long orderId = 12323123L;
-    Long productId = 1L;
-    Integer quantity = 1;
+
+    String orderId = "tempOrderId";
     Long userId = 1L;
-    OrderRequestDTO orderRequestDTO = new OrderRequestDTO("orderRequestId", quantity);
+
+    Long productId1 = 1L;
+    Integer quantity1 = 2;
+    Integer price1 = 10000;
+    OrderItemRequestDTO orderItem1 = new OrderItemRequestDTO(productId1, quantity1);
+
+    Long productId2 = 5L;
+    Integer quantity2 = 3;
+    Integer price2 = 20000;
+    OrderItemRequestDTO orderItem2 = new OrderItemRequestDTO(productId2, quantity2);
+
+    List<OrderItemRequestDTO> orderItemRequestDTOs = List.of(orderItem1, orderItem2);
+    List<OrderItem> orderItems = orderItemRequestDTOs.stream().map(OrderItemRequestDTO::toOrderItem).toList();
+
+    OrderRequestDTO orderRequestDTO = new OrderRequestDTO("orderRequestId", orderItemRequestDTOs);
 
     @Test
     void orderProductSuccess() {
         ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
 
         // given
-        OrderEntity pendingOrder = OrderEntity.createPendingOrder(productId, quantity, userId);
+        Integer totalPrice = price1 * quantity1 + price2 * quantity2;
+
+        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, totalPrice, userId);
         ReflectionTestUtils.setField(pendingOrder, "id", orderId);
 
         // when
         Mockito.when(orderRepository.save(orderCaptor.capture())).thenReturn(pendingOrder);
-        Long id = orderService.orderProduct(userId, productId, orderRequestDTO);
+        Mockito.when(productService.findByIds(orderItems.stream().map(OrderItem::productId).toList()))
+            .thenReturn(List.of(
+                new ProductResponseDTO(orderItem1.productId(), price1, quantity1 * 2),
+                new ProductResponseDTO(orderItem2.productId(), price2, quantity2 * 2))
+            );
+
+        String id = orderService.orderProduct(userId, orderRequestDTO);
 
         // then
         Assertions.assertThat(id).isEqualTo(orderId);
-        Assertions.assertThat(orderCaptor.getValue().getProductId()).isEqualTo(productId);
-        Assertions.assertThat(orderCaptor.getValue().getQuantity()).isEqualTo(quantity);
+        Assertions.assertThat(orderCaptor.getValue().getOrderItems()).usingRecursiveComparison().isEqualTo(orderItems);
         Assertions.assertThat(orderCaptor.getValue().getBuyerId()).isEqualTo(userId);
+        Assertions.assertThat(orderCaptor.getValue().getTotalPrice()).isEqualTo(totalPrice);
     }
 
     @Test
@@ -81,7 +109,7 @@ class OrderServiceTest {
             .register(orderRequestDTO.orderRequestId());
 
         // then
-        Assertions.assertThatThrownBy(() -> orderService.orderProduct(userId, productId, orderRequestDTO))
+        Assertions.assertThatThrownBy(() -> orderService.orderProduct(userId, orderRequestDTO))
                 .isInstanceOf(OrderDuplicatedException.class);
     }
 
@@ -89,7 +117,7 @@ class OrderServiceTest {
     @MethodSource("isPayableSource")
     void isPayable(OrderState ordersState, Integer pastMinutes, Boolean expectedPayable) {
         // given
-        OrderEntity order = new OrderEntity(1L, 1L, 1, 1L, ordersState, 1L);
+        OrderEntity order = new OrderEntity("tempOrderId", 1L, orderItems, 30000, ordersState, 1L);
         ReflectionTestUtils.setField(order, "createdTime", LocalDateTime.now().minusMinutes(pastMinutes));
 
         // when

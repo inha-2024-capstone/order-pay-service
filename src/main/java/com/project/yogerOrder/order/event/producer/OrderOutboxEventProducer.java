@@ -1,11 +1,19 @@
 package com.project.yogerOrder.order.event.producer;
 
+import org.springframework.stereotype.Component;
+
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
-import com.project.yogerOrder.order.event.*;
+import com.project.yogerOrder.order.event.DeductionAfterOrderCanceledEvent;
+import com.project.yogerOrder.order.event.OrderCanceledEvent;
+import com.project.yogerOrder.order.event.OrderCompletedEvent;
+import com.project.yogerOrder.order.event.OrderCreatedEvent;
+import com.project.yogerOrder.order.event.OrderErroredEvent;
+import com.project.yogerOrder.order.event.OrderEventType;
+import com.project.yogerOrder.order.event.PaymentCompletedAfterOrderCanceledEvent;
 import com.project.yogerOrder.order.event.outbox.service.OrderOutboxService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -15,8 +23,8 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
 
     @Override
     public void publishEventByState(OrderEntity orderEntity, OrderState beforeState) {
-        Boolean isStockOccupied = OrderState.isStockOccupied(beforeState);
-        Boolean isPaymentCompleted = OrderState.isPaymentCompleted(beforeState);
+        Boolean isStockOccupied = beforeState.isStockOccupied();
+        Boolean isPaymentCompleted = beforeState.isPaymentCompleted();
 
         if (orderEntity.getState() == OrderState.COMPLETED) {
             publishOrderCompletedEvent(orderEntity);

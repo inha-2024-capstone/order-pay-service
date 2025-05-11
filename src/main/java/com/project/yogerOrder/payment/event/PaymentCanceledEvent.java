@@ -11,7 +11,11 @@ import jakarta.validation.constraints.NotNull;
 public record PaymentCanceledEvent(@NotBlank String paymentId, @NotBlank String eventId, @NotBlank PaymentEventType eventType,
                                    @NotNull PaymentCanceledData data, @NotNull LocalDateTime occurrenceDateTime) {
 
-    public record PaymentCanceledData(@NotNull Long userId, @NotNull Long orderId, @NotNull Integer totalPrice) {
+    private record PaymentCanceledData(@NotNull Long userId, @NotNull String orderId, @NotNull Integer totalPrice) {
+    }
+
+    public String getOrderId() {
+        return data().orderId();
     }
 
     public static PaymentCanceledEvent from(PaymentEntity paymentEntity) {

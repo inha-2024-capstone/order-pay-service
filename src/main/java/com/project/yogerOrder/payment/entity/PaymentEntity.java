@@ -28,7 +28,7 @@ public class PaymentEntity extends BaseTimeEntity {
 
     @NotNull
     @Column(nullable = false, unique = true, updatable = false)
-    private Long orderId;
+    private String orderId;
 
     @Min(1)
     @Column(nullable = false)
@@ -48,7 +48,7 @@ public class PaymentEntity extends BaseTimeEntity {
     @Version
     private Long version;
 
-    private PaymentEntity(String pgPaymentId, Long orderId, Integer amount, Long userId, PaymentState state) {
+    private PaymentEntity(String pgPaymentId, String orderId, Integer amount, Long userId, PaymentState state) {
         this.pgPaymentId = pgPaymentId;
         this.orderId = orderId;
         this.amount = amount;
@@ -56,15 +56,15 @@ public class PaymentEntity extends BaseTimeEntity {
         this.state = state;
     }
 
-    public static PaymentEntity createPaidPayment(String impUid, Long orderId, Integer amount, Long userId) {
+    public static PaymentEntity createPaidPayment(String impUid, String orderId, Integer amount, Long userId) {
         return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.PAID);
     }
 
-    public static PaymentEntity createCanceledPayment(String impUid, Long orderId, Integer amount, Long userId) {
+    public static PaymentEntity createCanceledPayment(String impUid, String orderId, Integer amount, Long userId) {
         return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.CANCELED);
     }
 
-    public static PaymentEntity createErrorPayment(String impUid, Long orderId, Integer amount, Long userId) {
+    public static PaymentEntity createErrorPayment(String impUid, String orderId, Integer amount, Long userId) {
         return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERRORED);
     }
 

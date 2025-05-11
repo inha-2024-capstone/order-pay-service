@@ -4,7 +4,7 @@ import static org.awaitility.Awaitility.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -13,29 +13,32 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
 import com.project.yogerOrder.order.controller.OrderController;
+import com.project.yogerOrder.order.dto.request.OrderItemRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
+import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.payment.config.PaymentTopic;
+import com.project.yogerOrder.payment.entity.PaymentEntity;
+import com.project.yogerOrder.payment.entity.PaymentState;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.payment.event.PaymentEventType;
 import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
-import com.project.yogerOrder.product.event.ProductEventType;
-
-import jakarta.persistence.EntityManager;
+import com.project.yogerOrder.product.service.ProductService;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class OrderIntegrationTest extends UsingTestContainerTest {
@@ -49,33 +52,46 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     @Autowired
     OrderRepository orderRepository;
 
-    @Autowired
-    EntityManager entityManager;
+    @MockBean
+    ProductService productService;
 
-    @Autowired
-    TransactionTemplate transactionTemplate;
-
-    private static final Long productId = 1L;
-    private static final Integer quantity = 2;
     private static final Long userId = 3L;
-    private static final Integer totalPrice = 1000;
-    private static final String paymentId = "4";
-    private static final Long orderId = 1L;
+    private static final Long paymentId = 4L;
+    private static final String orderId = "tempOrderId";
+
+    private static final Long productId1 = 1L;
+    private static final Integer quantity1 = 2;
+    private static final Integer orderItem1Price = 2000;
+    private static final OrderItem orderItem1 = new OrderItem(productId1, quantity1);
+
+    private static final Long productId2 = 5L;
+    private static final Integer quantity2 = 3;
+    private static final Integer orderItem2Price = 5000;
+    private static final OrderItem orderItem2 = new OrderItem(productId2, quantity2);
+    private static final List<OrderItem> orderItems = List.of(orderItem1, orderItem2);
+
+    private static final OrderItemRequestDTO orderItemRequestDTO1 = new OrderItemRequestDTO(productId1, quantity1);
+    private static final OrderItemRequestDTO orderItemRequestDTO2 = new OrderItemRequestDTO(productId1, quantity1);
+    private static final List<OrderItemRequestDTO> orderItemRequestDTOs = List.of(orderItemRequestDTO1, orderItemRequestDTO2);
 
 
     @ParameterizedTest
     @MethodSource("orderStateChangeSource")
     void orderStateChangeTest(OrderState startState, Object testEvent, String eventTopic, OrderState desiredState) {
         // given
-        OrderEntity initialOrder = OrderEntity.createPendingOrder(productId, quantity, userId);
+        Integer tempPrice = 30000;
+        OrderEntity initialOrder = OrderEntity.createPendingOrder(orderItems, tempPrice, userId);
         ReflectionTestUtils.setField(initialOrder, "id", orderId);
         ReflectionTestUtils.setField(initialOrder, "state", startState);
         ReflectionTestUtils.setField(initialOrder, "version", 1L);
 
-        // ReflectionTestUtils.setField()로 설정하면 jpa entity가 detach됨. 이것을 해결하기 위해 영속 상태로 만들어야 함.
-        OrderEntity mergedInitialOrder = transactionTemplate.execute(status -> entityManager.merge(initialOrder));
+        orderRepository.save(Objects.requireNonNull(initialOrder));
 
-        orderRepository.save(Objects.requireNonNull(mergedInitialOrder));
+        Mockito.when(productService.findByIds(orderItems.stream().map(OrderItem::productId).toList()))
+            .thenReturn(List.of(
+                new ProductResponseDTO(productId1, orderItem1Price, quantity1 * 2),
+                new ProductResponseDTO(productId2, orderItem2Price, quantity2 * 2)
+            ));
 
         // when
         kafkaTemplate.executeInTransaction(kafkaTemplate -> {
@@ -204,67 +220,44 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     }
 
     private static ProductDeductionCompletedEvent createProductDeductionCompletedEvent() {
-        ProductDeductionCompletedEvent.ProductDeductionCompletedData completedData =
-                new ProductDeductionCompletedEvent.ProductDeductionCompletedData(orderId, quantity);
-
-        return new ProductDeductionCompletedEvent(
-                productId,
-                "testEventId",
-                ProductEventType.DEDUCTION_COMPLETED,
-                completedData,
-                LocalDateTime.now()
-        );
+        return ProductDeductionCompletedEvent.of(orderId);
     }
 
     private static ProductDeductionFailedEvent createProductDeductionFailedEvent() {
-        ProductDeductionFailedEvent.ProductDeductionFailedData failedData =
-                new ProductDeductionFailedEvent.ProductDeductionFailedData(orderId, quantity);
-
-        return new ProductDeductionFailedEvent(
-                productId,
-                "testEventId",
-                ProductEventType.DEDUCTION_FAILED,
-                failedData,
-                LocalDateTime.now()
-        );
+        return ProductDeductionFailedEvent.of(orderId);
     }
 
     private static PaymentCompletedEvent createPaymentCompletedEvent() {
-        PaymentCompletedEvent.PaymentCompletedData completedData =
-                new PaymentCompletedEvent.PaymentCompletedData(userId, orderId, totalPrice);
+        PaymentEntity paymentEntity = new PaymentEntity(paymentId, "pgPaymentId", orderId, 30000, 0, userId,
+            PaymentState.PAID, 0L);
 
-        return new PaymentCompletedEvent(
-                paymentId,
-                "testEventId",
-                PaymentEventType.COMPLETED,
-                completedData,
-                LocalDateTime.now()
-        );
+        return PaymentCompletedEvent.from(paymentEntity);
     }
 
     private static PaymentCanceledEvent createPaymentFailedEvent() {
-        PaymentCanceledEvent.PaymentCanceledData failedData =
-                new PaymentCanceledEvent.PaymentCanceledData(userId, orderId, totalPrice);
+        PaymentEntity paymentEntity = new PaymentEntity(paymentId, "pgPaymentId", orderId, 30000, 30000, userId,
+            PaymentState.CANCELED, 0L);
 
-        return new PaymentCanceledEvent(
-                paymentId,
-                "testEventId",
-                PaymentEventType.CANCELED,
-                failedData,
-                LocalDateTime.now()
-        );
+        return PaymentCanceledEvent.from(paymentEntity);
     }
 
     @Test
     void orderDuplicatedCheckTest() {
         // given
         String orderRequestId = "orderRequestId";
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO(orderRequestId, quantity);
+        OrderRequestDTO orderRequestDTO = new OrderRequestDTO(orderRequestId, orderItemRequestDTOs);
 
-        orderController.orderProduct(userId, productId, orderRequestDTO);
+        Mockito.when(productService.findByIds(orderRequestDTO.orderItems().stream().map(OrderItemRequestDTO::productId).toList()))
+            .thenReturn(List.of(
+                new ProductResponseDTO(productId1, orderItem1Price, quantity1 * 2),
+                new ProductResponseDTO(productId2, orderItem2Price, quantity2 * 2)
+            ));
+
+        //when
+        orderController.orderProduct(userId, orderRequestDTO);
 
         // then
-        Assertions.assertThrows(OrderDuplicatedException.class, () -> orderController.orderProduct(userId, productId, orderRequestDTO));
+        Assertions.assertThrows(OrderDuplicatedException.class, () -> orderController.orderProduct(userId, orderRequestDTO));
     }
 
 }

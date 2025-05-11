@@ -48,7 +48,7 @@ class PaymentTransactionService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    void orderCanceled(Long orderId) {
+    void orderCanceled(String orderId) {
         paymentRepository.findByOrderId(orderId).ifPresent(paymentEntity -> {
             Boolean isUpdated = paymentEntity.changeStateIfChangeable(PaymentStateChangeEvent.ORDER_CANCELED);
             if (!isUpdated) {

@@ -4,8 +4,7 @@ import static org.awaitility.Awaitility.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import com.project.yogerOrder.global.UsingTestContainerTest;
 import com.project.yogerOrder.product.config.ProductTopic;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
-import com.project.yogerOrder.product.event.ProductEventType;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
 import com.project.yogerOrder.product.service.ProductService;
@@ -41,14 +39,8 @@ public class ProductIntegrationTest extends UsingTestContainerTest {
 		kafkaTemplate.executeInTransaction(kafkaTemplate ->
 			kafkaTemplate.send(
 				ProductTopic.UPDATED,
-				new ProductUpdatedEvent(
-					productId,
-					UUID.randomUUID().toString(),
-					ProductEventType.UPDATED,
-					new ProductUpdatedEvent.ProductUpdatedData("proName", stock, price),
-					LocalDateTime.now()
-				))
-		);
+				ProductUpdatedEvent.of(productId,"proName", stock, price)
+			));
 
 		// then
 		await()
@@ -56,8 +48,11 @@ public class ProductIntegrationTest extends UsingTestContainerTest {
 			.atMost(Duration.ofSeconds(30))
 			.ignoreException(ProductNotFoundException.class)
 			.untilAsserted(() -> {
-				ProductResponseDTO productResponseDTO = productService.findById(productId);
+				List<ProductResponseDTO> productResponseDTOS = productService.findByIds(List.of(productId));
 
+				Assertions.assertEquals(1, productResponseDTOS.size());
+
+				ProductResponseDTO productResponseDTO = productResponseDTOS.getLast();
 				Assertions.assertEquals(productId, productResponseDTO.id());
 				Assertions.assertEquals(stock, productResponseDTO.stock());
 				Assertions.assertEquals(price, productResponseDTO.price());

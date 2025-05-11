@@ -1,5 +1,7 @@
 package com.project.yogerOrder.payment.service;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 
 import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
@@ -12,7 +14,6 @@ import com.project.yogerOrder.payment.repository.PaymentRepository;
 import com.project.yogerOrder.payment.util.pg.dto.request.PGRefundRequestDTO;
 import com.project.yogerOrder.payment.util.pg.dto.resposne.PGPaymentInformResponseDTO;
 import com.project.yogerOrder.payment.util.pg.service.PGClientService;
-import com.project.yogerOrder.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +31,6 @@ public class PaymentService {
 
     private final OrderService orderService;
 
-    private final ProductService productService;
-
 
     // 웹훅인 줄 알았는데 외부 요청이었으면 -> 상관 없게 로직 작성
     // 신뢰 정보(= 사용자 조작 불가, 검증 필요): 결제 id(존재 검증), 결제 금액(원래 값과 비교), 결제 상태(paid 상태인지 검사)
@@ -45,7 +44,7 @@ public class PaymentService {
         }
 
         PGPaymentInformResponseDTO pgInform = pgClientService.getInformById(verifyPaymentRequestDTO.impUid()); // 외부
-        OrderEntity orderEntity = orderService.findById(Long.valueOf(pgInform.orderId())); // 내부
+        OrderEntity orderEntity = orderService.findById(pgInform.orderId()); // 내부
         if (!pgInform.isPaid()) { // 결제된 상태가 아니면 환불 X
             log.error("PG payment {} is not paid state", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
@@ -64,8 +63,7 @@ public class PaymentService {
             return;
         }
 
-        Integer price = productService.findById(orderEntity.getProductId()).price();
-        if (pgInform.amount() != (price * orderEntity.getQuantity())) { // 내부
+        if (!Objects.equals(pgInform.amount(), orderEntity.getTotalPrice())) { // 내부
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
             pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
@@ -76,7 +74,7 @@ public class PaymentService {
 
         paymentTransactionService.confirmPayment(new ConfirmPaymentRequestDTO( // 내부
                 pgInform.pgPaymentId(),
-                Long.valueOf(pgInform.orderId()),
+                pgInform.orderId(),
                 orderEntity.getBuyerId(),
                 pgInform.amount()
         ));
@@ -85,7 +83,7 @@ public class PaymentService {
     private PaymentEntity cancelPaymentByError(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
         return PaymentEntity.createErrorPayment(
                 pgInform.pgPaymentId(),
-                Long.valueOf(pgInform.orderId()),
+                pgInform.orderId(),
                 pgInform.amount(),
                 orderEntity.getBuyerId()
         );
@@ -94,14 +92,14 @@ public class PaymentService {
     private PaymentEntity cancelPaymentByValidation(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
         return PaymentEntity.createCanceledPayment(
                 pgInform.pgPaymentId(),
-                Long.valueOf(pgInform.orderId()),
+                pgInform.orderId(),
                 pgInform.amount(),
                 orderEntity.getBuyerId()
         );
     }
 
     @OptimisticLockRetry
-    public void orderCanceled(Long orderId) {
+    public void orderCanceled(String orderId) {
         paymentTransactionService.orderCanceled(orderId);
     }
 }

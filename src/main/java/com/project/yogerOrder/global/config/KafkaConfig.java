@@ -17,6 +17,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import com.project.yogerOrder.order.config.OrderTopic;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
+import com.project.yogerOrder.order.event.OrderCompletedEvent;
 import com.project.yogerOrder.payment.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
@@ -81,7 +82,7 @@ public class KafkaConfig {
         }
 
         public static final String ORDER_CANCELED_FACTORY = "orderCanceledFactory";
-        public static final String ORDER_COMPLETED_FACTORY = "orderCanceledFactory";
+        public static final String ORDER_COMPLETED_FACTORY = "orderCompletedFactory";
 
         public static final String DEDUCTION_COMPLETED_FACTORY = "productDeductionCompletedFactory";
         public static final String DEDUCTION_FAILED_FACTORY = "productDeductionFailedFactory";
@@ -92,13 +93,28 @@ public class KafkaConfig {
 
 
         @Bean(ORDER_CANCELED_FACTORY)
-        public ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> orderpaymentCanceledEventConcurrentKafkaListenerContainerFactory() {
+        public ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> orderCanceledEventConcurrentKafkaListenerContainerFactory() {
             ConcurrentKafkaListenerContainerFactory<String, OrderCanceledEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
             DefaultKafkaConsumerFactory<String, OrderCanceledEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
                 consumerConfig(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(OrderCanceledEvent.class, false)
+            );
+
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+
+        @Bean(ORDER_COMPLETED_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, OrderCompletedEvent> orderCompletedEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, OrderCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+            DefaultKafkaConsumerFactory<String, OrderCompletedEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(OrderCompletedEvent.class, false)
             );
 
             factory.setConsumerFactory(consumerFactory);

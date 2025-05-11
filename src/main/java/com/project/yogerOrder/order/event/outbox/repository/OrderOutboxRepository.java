@@ -1,9 +1,10 @@
 package com.project.yogerOrder.order.event.outbox.repository;
 
-import com.project.yogerOrder.order.event.outbox.entity.OrderOutboxEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-@Repository
-public interface OrderOutboxRepository extends JpaRepository<OrderOutboxEntity, String> {
+import com.project.yogerOrder.global.util.db.ExcludeFromJpaRepository;
+import com.project.yogerOrder.order.event.outbox.entity.OrderOutboxEntity;
+
+@ExcludeFromJpaRepository
+public interface OrderOutboxRepository extends MongoRepository<OrderOutboxEntity, String> {
 }
