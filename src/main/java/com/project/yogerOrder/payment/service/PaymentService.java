@@ -103,4 +103,8 @@ public class PaymentService {
     public void orderCanceled(String orderId) {
         paymentTransactionService.orderCanceled(orderId);
     }
+
+    public void refundPGPayment(String pgPaymentId, Integer amount) {
+        pgClientService.refund(new PGRefundRequestDTO(pgPaymentId, amount));
+    }
 }
