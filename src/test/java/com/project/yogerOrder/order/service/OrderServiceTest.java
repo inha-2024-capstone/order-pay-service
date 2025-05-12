@@ -117,7 +117,9 @@ class OrderServiceTest {
     @MethodSource("isPayableSource")
     void isPayable(OrderState ordersState, Integer pastMinutes, Boolean expectedPayable) {
         // given
-        OrderEntity order = new OrderEntity("tempOrderId", 1L, orderItems, 30000, ordersState, 1L);
+        OrderEntity order = OrderEntity.createPendingOrder(orderItems, 30000, 1L);
+        ReflectionTestUtils.setField(order, "state", ordersState);
+
         ReflectionTestUtils.setField(order, "createdTime", LocalDateTime.now().minusMinutes(pastMinutes));
 
         // when
