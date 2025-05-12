@@ -8,7 +8,7 @@ import com.project.yogerOrder.payment.entity.PaymentEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record PaymentCanceledEvent(@NotBlank String paymentId, @NotBlank String eventId, @NotBlank PaymentEventType eventType,
+public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String eventId, @NotBlank PaymentEventType eventType,
                                    @NotNull PaymentCanceledData data, @NotNull LocalDateTime occurrenceDateTime) {
 
     private record PaymentCanceledData(@NotNull Long userId, @NotNull String orderId, @NotNull Integer totalPrice) {
@@ -20,7 +20,7 @@ public record PaymentCanceledEvent(@NotBlank String paymentId, @NotBlank String 
 
     public static PaymentCanceledEvent from(PaymentEntity paymentEntity) {
         return new PaymentCanceledEvent(
-            paymentEntity.getPgPaymentId(),
+            paymentEntity.getId(),
             UUID.randomUUID().toString(),
             PaymentEventType.CANCELED,
             new PaymentCanceledData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
