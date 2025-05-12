@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import com.project.yogerOrder.global.config.KafkaConfig;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.order.event.config.OrderTopic;
+import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,4 +26,13 @@ public class PaymentEventConsumer {
 
         acknowledgment.acknowledge();
     }
+
+    @KafkaListener(topics = PaymentTopic.CANCELED, groupId = KafkaConfig.PAYMENT_GROUP,
+        containerFactory = KafkaConfig.KafkaConsumerConfig.PAYMENT_CANCELED_FACTORY)
+    public void paymentCanceled(PaymentCanceledEvent event, Acknowledgment acknowledgment) {
+        paymentService.refundPGPayment(event.getPGPaymentId(), event.getAmount());
+
+        acknowledgment.acknowledge();
+    }
+
 }
