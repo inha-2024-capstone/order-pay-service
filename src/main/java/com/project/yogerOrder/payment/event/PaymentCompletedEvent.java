@@ -20,11 +20,11 @@ public record PaymentCompletedEvent(@NotNull String paymentId, @NotBlank String 
 
     public static PaymentCompletedEvent from(PaymentEntity paymentEntity) {
         return new PaymentCompletedEvent(
-                paymentEntity.getPgPaymentId(),
-                UUID.randomUUID().toString(),
-                PaymentEventType.COMPLETED,
-                new PaymentCompletedData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
-                LocalDateTime.now()
+            paymentEntity.getPgPaymentId(),
+            UUID.randomUUID().toString(),
+            PaymentEventType.COMPLETED,
+            new PaymentCompletedData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
+            LocalDateTime.now()
         );
     }
 }

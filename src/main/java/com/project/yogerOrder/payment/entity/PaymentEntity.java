@@ -78,6 +78,7 @@ public class PaymentEntity extends BaseTimeEntity {
         return new PaymentEntity(impUid, orderId, amount, userId, PaymentState.ERRORED);
     }
 
+
     public Boolean isPartialRefundable(Integer refundAmount) {
         return (refundAmount < this.amount) && (this.refundedAmount == 0) && (this.state == PaymentState.PAID);
     }

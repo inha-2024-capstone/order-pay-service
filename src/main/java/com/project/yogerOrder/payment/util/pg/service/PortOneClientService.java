@@ -1,5 +1,11 @@
 package com.project.yogerOrder.payment.util.pg.service;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
 import com.project.yogerOrder.global.exception.specific.NotHandledException;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRefundException;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
@@ -10,12 +16,8 @@ import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.Payment;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -43,9 +45,9 @@ public class PortOneClientService implements PGClientService {
     @Override
     public void refund(PGRefundRequestDTO pgRefundRequestDTO) throws InvalidPaymentRefundException, PGServerException, NotHandledException {
         CancelData cancelData = new CancelData(
-                pgRefundRequestDTO.paymentId(),
-                true,
-                new BigDecimal(pgRefundRequestDTO.refundAmount())
+            pgRefundRequestDTO.paymentId(),
+            true,
+            new BigDecimal(pgRefundRequestDTO.refundAmount())
         );
         cancelData.setChecksum(new BigDecimal(pgRefundRequestDTO.checksum()));
 

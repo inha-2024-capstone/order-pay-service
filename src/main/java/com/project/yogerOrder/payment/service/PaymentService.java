@@ -38,13 +38,13 @@ public class PaymentService {
     @OptimisticLockRetry
     public void verifyPayment(VerifyPaymentRequestDTO verifyPaymentRequestDTO) {
         // 결제 id 존재 검증
-        if (paymentRepository.existsByPgPaymentId(verifyPaymentRequestDTO.impUid())) { // 내부
+        if (paymentRepository.existsByPgPaymentId(verifyPaymentRequestDTO.impUid())) {
             log.debug("Verifying payment {} is ignored because already exists", verifyPaymentRequestDTO.impUid());
             return;
         }
 
-        PGPaymentInformResponseDTO pgInform = pgClientService.getInformById(verifyPaymentRequestDTO.impUid()); // 외부
-        OrderEntity orderEntity = orderService.findById(pgInform.orderId()); // 내부
+        PGPaymentInformResponseDTO pgInform = pgClientService.getInformById(verifyPaymentRequestDTO.impUid());
+        OrderEntity orderEntity = orderService.findById(pgInform.orderId());
         if (!pgInform.isPaid()) { // 결제된 상태가 아니면 환불 X
             log.error("PG payment {} is not paid state", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
@@ -53,8 +53,8 @@ public class PaymentService {
             return;
         }
 
-        // 결제 검증 = 금액, 상태
-        if (!orderService.isPayable(orderEntity)) { // 내부
+        // 결제 검증: 상태
+        if (!orderService.isPayable(orderEntity)) {
             log.debug("payment {} is not payable", pgInform.pgPaymentId());
             PaymentEntity canceledPayment = cancelPaymentByValidation(orderEntity, pgInform);
             pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
@@ -63,7 +63,8 @@ public class PaymentService {
             return;
         }
 
-        if (!Objects.equals(pgInform.amount(), orderEntity.getTotalPrice())) { // 내부
+        // 결제 검증: 금액
+        if (!Objects.equals(pgInform.amount(), orderEntity.getTotalPrice())) {
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
             pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
@@ -72,29 +73,31 @@ public class PaymentService {
             return;
         }
 
-        paymentTransactionService.confirmPayment(new ConfirmPaymentRequestDTO( // 내부
+        paymentTransactionService.confirmPayment(
+            new ConfirmPaymentRequestDTO(
                 pgInform.pgPaymentId(),
                 pgInform.orderId(),
                 orderEntity.getBuyerId(),
                 pgInform.amount()
-        ));
+            )
+        );
     }
 
     private PaymentEntity cancelPaymentByError(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
         return PaymentEntity.createErrorPayment(
-                pgInform.pgPaymentId(),
-                pgInform.orderId(),
-                pgInform.amount(),
-                orderEntity.getBuyerId()
+            pgInform.pgPaymentId(),
+            pgInform.orderId(),
+            pgInform.amount(),
+            orderEntity.getBuyerId()
         );
     }
 
     private PaymentEntity cancelPaymentByValidation(OrderEntity orderEntity, PGPaymentInformResponseDTO pgInform) {
         return PaymentEntity.createCanceledPayment(
-                pgInform.pgPaymentId(),
-                pgInform.orderId(),
-                pgInform.amount(),
-                orderEntity.getBuyerId()
+            pgInform.pgPaymentId(),
+            pgInform.orderId(),
+            pgInform.amount(),
+            orderEntity.getBuyerId()
         );
     }
 

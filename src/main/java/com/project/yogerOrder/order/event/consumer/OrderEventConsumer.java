@@ -22,7 +22,7 @@ public class OrderEventConsumer {
     private final OrderService orderService;
 
     @KafkaListener(topics = ProductTopic.DEDUCTION_COMPLETED, groupId = KafkaConfig.ORDER_GROUP,
-            containerFactory = KafkaConfig.KafkaConsumerConfig.DEDUCTION_COMPLETED_FACTORY)
+        containerFactory = KafkaConfig.KafkaConsumerConfig.DEDUCTION_COMPLETED_FACTORY)
     public void productDeductionCompleted(ProductDeductionCompletedEvent event, Acknowledgment acknowledgment) {
         orderService.updateByDeductionSuccess(event.getOrderId());
 
@@ -30,7 +30,7 @@ public class OrderEventConsumer {
     }
 
     @KafkaListener(topics = ProductTopic.DEDUCTION_FAILED, groupId = KafkaConfig.ORDER_GROUP,
-            containerFactory = KafkaConfig.KafkaConsumerConfig.DEDUCTION_FAILED_FACTORY)
+        containerFactory = KafkaConfig.KafkaConsumerConfig.DEDUCTION_FAILED_FACTORY)
     public void productDeductionFailed(ProductDeductionFailedEvent event, Acknowledgment acknowledgment) {
         orderService.updateByDeductionFail(event.getOrderId());
 
@@ -38,7 +38,7 @@ public class OrderEventConsumer {
     }
 
     @KafkaListener(topics = PaymentTopic.COMPLETED, groupId = KafkaConfig.ORDER_GROUP,
-            containerFactory = KafkaConfig.KafkaConsumerConfig.PAYMENT_COMPLETED_FACTORY)
+        containerFactory = KafkaConfig.KafkaConsumerConfig.PAYMENT_COMPLETED_FACTORY)
     public void paymentCompleted(PaymentCompletedEvent event, Acknowledgment acknowledgment) {
         orderService.updateByPaymentCompleted(event.getOrderId());
 
@@ -46,7 +46,7 @@ public class OrderEventConsumer {
     }
 
     @KafkaListener(topics = PaymentTopic.CANCELED, groupId = KafkaConfig.ORDER_GROUP,
-            containerFactory = KafkaConfig.KafkaConsumerConfig.PAYMENT_CANCELED_FACTORY)
+        containerFactory = KafkaConfig.KafkaConsumerConfig.PAYMENT_CANCELED_FACTORY)
     public void paymentCanceled(PaymentCanceledEvent event, Acknowledgment acknowledgment) {
         orderService.updateByPaymentCanceled(event.getOrderId());
 

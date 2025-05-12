@@ -21,7 +21,11 @@ public class OrderDuplicateCheckService {
 	private final RedisTemplate<String, Object> redisTemplate;
 
 	public void register(String orderRequestId) {
-		Boolean isAbsent = putIfAbsentWithTTL(ORDER_REQUEST_ID_PREFIX + orderRequestId, "exist", ORDER_REQUEST_ID_TTL);
+		Boolean isAbsent = putIfAbsentWithTTL(
+			ORDER_REQUEST_ID_PREFIX + orderRequestId,
+			"exist",
+			ORDER_REQUEST_ID_TTL
+		);
 
 		if (Boolean.FALSE.equals(isAbsent)) {
 			throw new OrderDuplicatedException();

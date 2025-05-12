@@ -57,7 +57,9 @@ public class OrderService {
             throw e;
         }
 
-        List<OrderItem> orderItems = orderRequestDTO.orderItems().stream().map(OrderItemRequestDTO::toOrderItem).toList();
+        List<OrderItem> orderItems = orderRequestDTO.orderItems()
+            .stream().map(OrderItemRequestDTO::toOrderItem)
+            .toList();
 
         Integer totalPrice = calculateTotalPrice(orderItems);
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, totalPrice, userId);
@@ -141,11 +143,10 @@ public class OrderService {
     @MongoTransactional
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
-        OrderState.getPayableStates().forEach(orderState ->
-                orderRepository.findAllByState(orderState)
-                        .parallelStream()
-                        .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
-                        .forEach(this::updateByExpiration)
+        OrderState.getPayableStates().forEach(orderState -> orderRepository.findAllByState(orderState)
+            .parallelStream()
+            .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
+            .forEach(this::updateByExpiration)
         );
 
         log.info("Pending order expiration schedule successfully executed");

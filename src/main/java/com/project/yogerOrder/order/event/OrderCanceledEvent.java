@@ -34,7 +34,12 @@ public record OrderCanceledEvent(@NotNull String orderId, @NotBlank String event
     private record OrderCanceledData(@NotNull Long userId, @NotEmpty List<OrderItemData> orderItems,
                                      @NotNull Boolean isStockOccupied, @NotNull Boolean isPaymentCompleted) {
 
-        private static OrderCanceledData of(Long userId, List<OrderItem> orderItems, Boolean isStockOccupied, Boolean isPaymentCompleted) {
+        private static OrderCanceledData of(
+            Long userId,
+            List<OrderItem> orderItems,
+            Boolean isStockOccupied,
+            Boolean isPaymentCompleted) {
+
             return new OrderCanceledData(
                 userId,
                 orderItems.stream().map(OrderItemData::from).collect(Collectors.toList()),

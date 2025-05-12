@@ -20,11 +20,11 @@ public record PaymentCanceledEvent(@NotBlank String paymentId, @NotBlank String 
 
     public static PaymentCanceledEvent from(PaymentEntity paymentEntity) {
         return new PaymentCanceledEvent(
-                paymentEntity.getPgPaymentId(),
-                UUID.randomUUID().toString(),
-                PaymentEventType.CANCELED,
-                new PaymentCanceledData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
-                LocalDateTime.now()
+            paymentEntity.getPgPaymentId(),
+            UUID.randomUUID().toString(),
+            PaymentEventType.CANCELED,
+            new PaymentCanceledData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
+            LocalDateTime.now()
         );
     }
 }

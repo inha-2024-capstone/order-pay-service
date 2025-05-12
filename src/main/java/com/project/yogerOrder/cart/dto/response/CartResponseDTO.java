@@ -12,8 +12,8 @@ public record CartResponseDTO(@NotEmpty List<CartResponseData> cartItems) {
 	public record CartResponseData(@NotNull Long productId, @NotNull Integer quantity) {}
 
 	public static CartResponseDTO from(CartEntity cart) {
-		return new CartResponseDTO(cart.getItems().stream()
-			.map(entry -> new CartResponseData(entry.getKey(), entry.getValue()))
+		return new CartResponseDTO(cart.getItems()
+			.stream().map(entry -> new CartResponseData(entry.getKey(), entry.getValue()))
 			.toList()
 		);
 	}

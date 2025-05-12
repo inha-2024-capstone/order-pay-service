@@ -38,8 +38,8 @@ public class CartEntity extends BaseTimeEntity {
 	}
 
 	public List<Map.Entry<Long, Integer>> getItems() {
-		return this.cartItems.entrySet().stream()
-			.map(entry -> Map.entry(Long.valueOf(entry.getKey()), entry.getValue()))
+		return this.cartItems.entrySet()
+			.stream().map(entry -> Map.entry(Long.valueOf(entry.getKey()), entry.getValue()))
 			.toList();
 	}
 

@@ -12,8 +12,8 @@ public record OrderResponseDTO(@NotNull String orderId, @NotEmpty List<OrderItem
 
     public static OrderResponseDTO from(OrderEntity orderEntity) {
         return new OrderResponseDTO(
-                orderEntity.getId(),
-                orderEntity.getOrderItems()
+            orderEntity.getId(),
+            orderEntity.getOrderItems()
         );
     }
 }
