@@ -15,7 +15,7 @@ public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String ev
         @NotNull String pgPaymentId,
         @NotNull Long userId,
         @NotNull String orderId,
-        @NotNull Integer totalPrice) {
+        @NotNull Integer amount) {
     }
 
     public String getOrderId() {
@@ -24,6 +24,10 @@ public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String ev
 
     public String getPGPaymentId() {
         return data().pgPaymentId();
+    }
+
+    public Integer getAmount() {
+        return data().amount();
     }
 
     public static PaymentCanceledEvent from(PaymentEntity paymentEntity) {
