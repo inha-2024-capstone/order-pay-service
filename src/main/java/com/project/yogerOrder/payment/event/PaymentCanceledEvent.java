@@ -11,7 +11,11 @@ import jakarta.validation.constraints.NotNull;
 public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String eventId, @NotBlank PaymentEventType eventType,
                                    @NotNull PaymentCanceledData data, @NotNull LocalDateTime occurrenceDateTime) {
 
-    private record PaymentCanceledData(@NotNull Long userId, @NotNull String orderId, @NotNull Integer totalPrice) {
+    private record PaymentCanceledData(
+        @NotNull String pgPaymentId,
+        @NotNull Long userId,
+        @NotNull String orderId,
+        @NotNull Integer totalPrice) {
     }
 
     public String getOrderId() {
@@ -23,7 +27,12 @@ public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String ev
             paymentEntity.getId(),
             UUID.randomUUID().toString(),
             PaymentEventType.CANCELED,
-            new PaymentCanceledData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
+            new PaymentCanceledData(
+                paymentEntity.getPgPaymentId(),
+                paymentEntity.getUserId(),
+                paymentEntity.getOrderId(),
+                paymentEntity.getAmount()
+            ),
             LocalDateTime.now()
         );
     }
