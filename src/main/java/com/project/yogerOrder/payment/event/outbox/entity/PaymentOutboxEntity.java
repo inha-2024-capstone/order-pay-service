@@ -4,12 +4,13 @@ import com.project.yogerOrder.global.util.outbox.entity.OutboxEntity;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentEventType;
 import jakarta.persistence.Entity;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentOutboxEntity extends OutboxEntity {
 
     public PaymentOutboxEntity(PaymentEventType eventType, String payload) {
