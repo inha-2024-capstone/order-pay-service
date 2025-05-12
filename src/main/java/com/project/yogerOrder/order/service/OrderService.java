@@ -6,11 +6,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
-import com.project.yogerOrder.global.config.MongoDBConfig;
+import com.project.yogerOrder.global.util.db.MongoTransactional;
 import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
 import com.project.yogerOrder.order.config.OrderConfig;
 import com.project.yogerOrder.order.dto.request.OrderItemRequestDTO;
@@ -49,7 +48,7 @@ public class OrderService {
 
 
     // CREATE
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     public String orderProduct(Long userId, OrderRequestDTO orderRequestDTO) {
         try {
             orderDuplicateCheckService.register(orderRequestDTO.orderRequestId());
@@ -93,14 +92,14 @@ public class OrderService {
         return orderEntity.isPayable(config.validTime());
     }
 
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER, readOnly = true)
+    @MongoTransactional(readOnly = true)
     public OrderResponseDTOs findApprovedOrdersByUserId(Long userId) {
         return OrderResponseDTOs.from(orderRepository.findAllByBuyerIdAndState(userId, OrderState.COMPLETED));
     }
 
     // UPDATE
     @OptimisticLockRetry
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     public void updateByDeductionSuccess(String orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -113,13 +112,13 @@ public class OrderService {
     }
 
     @OptimisticLockRetry
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     public void updateByDeductionFail(String orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.STOCK_DEDUCT_FAILED);
     }
 
     @OptimisticLockRetry
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     public void updateByPaymentCompleted(String orderId) {
         OrderEntity orderEntity = findById(orderId);
 
@@ -132,14 +131,14 @@ public class OrderService {
     }
 
     @OptimisticLockRetry
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     public void updateByPaymentCanceled(String orderId) {
         updateByStateChange(findById(orderId), OrderStateChangeEvent.PAYMENT_CANCELED);
     }
 
     // 주기적 pending 상태 order를 만료 상태로 변경하고 상품 재고 release
     @Scheduled(cron = "${order.cron.expiration}")
-    @Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER)
+    @MongoTransactional
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState ->
