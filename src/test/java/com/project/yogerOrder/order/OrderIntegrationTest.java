@@ -29,15 +29,14 @@ import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
-import com.project.yogerOrder.payment.config.PaymentTopic;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
-import com.project.yogerOrder.payment.entity.PaymentState;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 import com.project.yogerOrder.product.service.ProductService;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -228,15 +227,17 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     }
 
     private static PaymentCompletedEvent createPaymentCompletedEvent() {
-        PaymentEntity paymentEntity = new PaymentEntity(paymentId, "pgPaymentId", orderId, 30000, 0, userId,
-            PaymentState.PAID, 0L);
+        PaymentEntity paymentEntity = PaymentEntity.createPaidPayment("pgPaymentId", orderId, 30000, userId);
+        ReflectionTestUtils.setField(paymentEntity,"id", paymentId);
 
         return PaymentCompletedEvent.from(paymentEntity);
     }
 
     private static PaymentCanceledEvent createPaymentFailedEvent() {
-        PaymentEntity paymentEntity = new PaymentEntity(paymentId, "pgPaymentId", orderId, 30000, 30000, userId,
-            PaymentState.CANCELED, 0L);
+        Integer amount = 30000;
+        PaymentEntity paymentEntity = PaymentEntity.createCanceledPayment("pgPaymentId", orderId, amount, userId);
+        ReflectionTestUtils.setField(paymentEntity,"id", paymentId);
+        ReflectionTestUtils.setField(paymentEntity,"refundedAmount", amount);
 
         return PaymentCanceledEvent.from(paymentEntity);
     }

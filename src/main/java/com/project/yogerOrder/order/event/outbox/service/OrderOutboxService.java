@@ -2,11 +2,10 @@ package com.project.yogerOrder.order.event.outbox.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.yogerOrder.global.config.MongoDBConfig;
+import com.project.yogerOrder.global.util.db.MongoTransactional;
 import com.project.yogerOrder.order.event.OrderEventType;
 import com.project.yogerOrder.order.event.outbox.entity.OrderOutboxEntity;
 import com.project.yogerOrder.order.event.outbox.repository.OrderOutboxRepository;
@@ -15,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = MongoDBConfig.MONGO_TRANSACTION_MANAGER, propagation = Propagation.MANDATORY)
+@MongoTransactional(propagation = Propagation.MANDATORY)
 public class OrderOutboxService {
 
     private final OrderOutboxRepository orderOutboxRepository;

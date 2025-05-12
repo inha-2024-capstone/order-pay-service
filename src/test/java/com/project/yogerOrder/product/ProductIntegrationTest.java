@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
-import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;

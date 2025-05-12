@@ -29,8 +29,10 @@ public record DeductionAfterOrderCanceledEvent(@NotNull String orderId, @NotBlan
     private record OrderDeductionAfterCanceledData(@NotNull Long userId, @NotEmpty List<OrderItemData> orderItems) {
 
         private static OrderDeductionAfterCanceledData of(Long userId, List<OrderItem> orderItems) {
-            return new OrderDeductionAfterCanceledData(userId, orderItems.stream().map(OrderItemData::from).collect(
-                Collectors.toList()));
+            return new OrderDeductionAfterCanceledData(
+                userId,
+                orderItems.stream().map(OrderItemData::from).collect(Collectors.toList())
+            );
         }
 
     }

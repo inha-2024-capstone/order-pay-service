@@ -17,7 +17,7 @@ import com.project.yogerOrder.cart.dto.request.DeleteProductFromCartRequestDTO;
 import com.project.yogerOrder.cart.dto.request.UpsertProductToCartRequestDTO;
 import com.project.yogerOrder.cart.dto.response.CartResponseDTO;
 import com.project.yogerOrder.global.UsingTestContainerTest;
-import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.event.OrderCompletedEvent;

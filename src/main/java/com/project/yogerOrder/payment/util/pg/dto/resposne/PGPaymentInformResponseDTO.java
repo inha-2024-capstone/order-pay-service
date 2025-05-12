@@ -12,10 +12,10 @@ public record PGPaymentInformResponseDTO(@NotBlank String pgPaymentId,
 
     public static PGPaymentInformResponseDTO from(Payment payment) {
         return new PGPaymentInformResponseDTO(
-                payment.getImpUid(),
-                payment.getMerchantUid(),
-                payment.getAmount().intValue(),
-                PGState.match(payment.getStatus())
+            payment.getImpUid(),
+            payment.getMerchantUid(),
+            payment.getAmount().intValue(),
+            PGState.match(payment.getStatus())
         );
     }
 

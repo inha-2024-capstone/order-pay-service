@@ -30,10 +30,10 @@ class PaymentTransactionService {
     @Transactional
     void confirmPayment(ConfirmPaymentRequestDTO confirmPaymentRequestDTO) {
         PaymentEntity paymentEntity = PaymentEntity.createPaidPayment(
-                confirmPaymentRequestDTO.pgPaymentId(),
-                confirmPaymentRequestDTO.orderId(),
-                confirmPaymentRequestDTO.amount(),
-                confirmPaymentRequestDTO.buyerId()
+            confirmPaymentRequestDTO.pgPaymentId(),
+            confirmPaymentRequestDTO.orderId(),
+            confirmPaymentRequestDTO.amount(),
+            confirmPaymentRequestDTO.buyerId()
         );
         paymentRepository.save(paymentEntity);
 

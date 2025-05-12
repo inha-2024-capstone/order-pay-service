@@ -62,15 +62,15 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
     @Override
     public void publishOrderDeductionAfterCanceledEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(
-                OrderEventType.DEDUCTION_AFTER_CANCELED,
-                DeductionAfterOrderCanceledEvent.from(orderEntity)
+            OrderEventType.DEDUCTION_AFTER_CANCELED,
+            DeductionAfterOrderCanceledEvent.from(orderEntity)
         );
     }
 
     public void publishPaymentCompletedAfterOrderCanceledEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(
-                OrderEventType.PAYMENT_COMPLETED_AFTER_CANCELED,
-                PaymentCompletedAfterOrderCanceledEvent.from(orderEntity)
+            OrderEventType.PAYMENT_COMPLETED_AFTER_CANCELED,
+            PaymentCompletedAfterOrderCanceledEvent.from(orderEntity)
         );
     }
 }

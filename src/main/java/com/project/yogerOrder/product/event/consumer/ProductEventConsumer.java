@@ -5,7 +5,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import com.project.yogerOrder.global.config.KafkaConfig;
-import com.project.yogerOrder.product.config.ProductTopic;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 import com.project.yogerOrder.product.dto.request.UpsertProductRequestDTO;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 import com.project.yogerOrder.product.service.ProductService;

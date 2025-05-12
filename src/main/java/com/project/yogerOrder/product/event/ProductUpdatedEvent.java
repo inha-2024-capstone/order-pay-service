@@ -11,11 +11,11 @@ public record ProductUpdatedEvent(@NotNull Long productId, @NotBlank String even
 
 	public static ProductUpdatedEvent of(Long productId, String name, Integer stock, Integer price) {
 		return new ProductUpdatedEvent(
-				productId,
-				UUID.randomUUID().toString(),
-				ProductEventType.UPDATED,
-				new ProductUpdatedData(name, stock, price),
-				LocalDateTime.now()
+			productId,
+			UUID.randomUUID().toString(),
+			ProductEventType.UPDATED,
+			new ProductUpdatedData(name, stock, price),
+			LocalDateTime.now()
 		);
 	}
 

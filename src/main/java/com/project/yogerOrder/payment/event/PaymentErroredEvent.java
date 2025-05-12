@@ -20,11 +20,11 @@ public record PaymentErroredEvent(@NotBlank String paymentId, @NotBlank String e
 
     public static PaymentErroredEvent from(PaymentEntity paymentEntity) {
         return new PaymentErroredEvent(
-                paymentEntity.getPgPaymentId(),
-                UUID.randomUUID().toString(),
-                PaymentEventType.CANCELED,
-                new PaymentErroredData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
-                LocalDateTime.now()
+            paymentEntity.getPgPaymentId(),
+            UUID.randomUUID().toString(),
+            PaymentEventType.CANCELED,
+            new PaymentErroredData(paymentEntity.getUserId(), paymentEntity.getOrderId(), paymentEntity.getAmount()),
+            LocalDateTime.now()
         );
     }
 }

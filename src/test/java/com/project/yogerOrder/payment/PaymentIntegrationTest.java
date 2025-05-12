@@ -16,7 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
-import com.project.yogerOrder.order.config.OrderTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
