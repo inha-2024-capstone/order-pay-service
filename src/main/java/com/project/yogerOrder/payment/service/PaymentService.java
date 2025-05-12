@@ -57,7 +57,6 @@ public class PaymentService {
         if (!orderService.isPayable(orderEntity)) {
             log.debug("payment {} is not payable", pgInform.pgPaymentId());
             PaymentEntity canceledPayment = cancelPaymentByValidation(orderEntity, pgInform);
-            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
             paymentTransactionService.saveCanceledPayment(canceledPayment);
 
             return;
@@ -67,7 +66,6 @@ public class PaymentService {
         if (!Objects.equals(pgInform.amount(), orderEntity.getTotalPrice())) {
             log.error("PG payment {} is invalid", pgInform.pgPaymentId());
             PaymentEntity errorPayment = cancelPaymentByError(orderEntity, pgInform);
-            pgClientService.refund(new PGRefundRequestDTO(pgInform.pgPaymentId(), pgInform.amount()));
             paymentTransactionService.saveCanceledPayment(errorPayment);
 
             return;
