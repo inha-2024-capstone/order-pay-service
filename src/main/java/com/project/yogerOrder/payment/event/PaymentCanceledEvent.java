@@ -22,6 +22,10 @@ public record PaymentCanceledEvent(@NotBlank Long paymentId, @NotBlank String ev
         return data().orderId();
     }
 
+    public String getPGPaymentId() {
+        return data().pgPaymentId();
+    }
+
     public static PaymentCanceledEvent from(PaymentEntity paymentEntity) {
         return new PaymentCanceledEvent(
             paymentEntity.getId(),
