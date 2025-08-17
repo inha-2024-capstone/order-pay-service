@@ -38,9 +38,6 @@ order:
     cron:
         expiration: '0 0/1 * * * *'
 
-global:
-    timeZone: 'Asia/Seoul'
-
 logging:
     level:
         org.library.yogerLibrary.log: DEBUG
