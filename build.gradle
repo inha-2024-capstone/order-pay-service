@@ -59,9 +59,11 @@ dependencies {
 	// Docs
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-	// Monitoring
+	// Observability
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	implementation 'io.opentelemetry:opentelemetry-api:1.54.0'
 
 	// TEST
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
