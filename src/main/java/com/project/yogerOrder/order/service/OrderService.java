@@ -61,8 +61,10 @@ public class OrderService {
             .stream().map(OrderItemRequestDTO::toOrderItem)
             .toList();
 
-        Integer totalPrice = calculateTotalPrice(orderItems);
-        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, totalPrice, userId);
+        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, calculateTotalPrice(orderItems), userId);
+        
+        productService.reserveStocks(pendingOrder.getId(), pendingOrder.getOrderItems());
+        
         OrderEntity orderEntity = orderRepository.save(pendingOrder);
 
         orderEventProducer.publishOrderCreatedEvent(orderEntity);
