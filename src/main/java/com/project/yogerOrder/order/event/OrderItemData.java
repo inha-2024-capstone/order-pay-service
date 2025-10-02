@@ -5,9 +5,9 @@ import com.project.yogerOrder.order.entity.OrderItem;
 
 import jakarta.validation.constraints.NotNull;
 
-record OrderItemData(@NotNull Long productId, @NotNull Integer quantity) {
+public record OrderItemData(@NotNull Long productId, @NotNull Integer quantity) {
 
-	static OrderItemData from(OrderItem orderItem) {
+	public static OrderItemData from(OrderItem orderItem) {
 		return new OrderItemData(orderItem.productId(), orderItem.quantity());
 	}
 
