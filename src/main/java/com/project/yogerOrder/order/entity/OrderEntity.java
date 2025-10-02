@@ -2,6 +2,7 @@ package com.project.yogerOrder.order.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -49,6 +50,7 @@ public class OrderEntity extends MongoDBBaseTimeEntity<String> {
 
 
     private OrderEntity(List<OrderItem> orderItems, Long buyerId, Integer totalPrice, OrderState state) {
+        this.id = UUID.randomUUID().toString();
         this.orderItems = orderItems;
         this.buyerId = buyerId;
         this.totalPrice = totalPrice;
