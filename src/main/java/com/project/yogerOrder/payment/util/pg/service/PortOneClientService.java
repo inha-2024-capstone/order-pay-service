@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.project.yogerOrder.global.exception.specific.NotHandledException;
+import com.project.yogerOrder.global.exception.specific.UnHandledException;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRefundException;
 import com.project.yogerOrder.payment.exception.InvalidPaymentRequestException;
 import com.project.yogerOrder.payment.exception.PGServerException;
@@ -26,7 +26,8 @@ public class PortOneClientService implements PGClientService {
     private final IamportClient iamportClient;
 
     @Override
-    public PGPaymentInformResponseDTO getInformById(String paymentId) throws InvalidPaymentRequestException, PGServerException, NotHandledException {
+    public PGPaymentInformResponseDTO getInformById(String paymentId) throws InvalidPaymentRequestException, PGServerException,
+		UnHandledException {
         try {
             Payment payment = iamportClient.paymentByImpUid(paymentId).getResponse();
 
@@ -36,14 +37,15 @@ public class PortOneClientService implements PGClientService {
                 throw new InvalidPaymentRequestException();
             else if (e.getHttpStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value())
                 throw new PGServerException();
-            else throw new NotHandledException(e);
+            else throw new UnHandledException(e);
         } catch (IOException e) { // network exception
             throw new PGServerException();
         }
     }
 
     @Override
-    public void refund(PGRefundRequestDTO pgRefundRequestDTO) throws InvalidPaymentRefundException, PGServerException, NotHandledException {
+    public void refund(PGRefundRequestDTO pgRefundRequestDTO) throws InvalidPaymentRefundException, PGServerException,
+		UnHandledException {
         CancelData cancelData = new CancelData(
             pgRefundRequestDTO.paymentId(),
             true,
@@ -59,7 +61,7 @@ public class PortOneClientService implements PGClientService {
                 throw new InvalidPaymentRefundException();
             else if (e.getHttpStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value())
                 throw new PGServerException();
-            else throw new NotHandledException(e);
+            else throw new UnHandledException(e);
         }
         catch (IOException e) { // network exception
             throw new PGServerException();

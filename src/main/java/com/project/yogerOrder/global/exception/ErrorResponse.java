@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class ErrorResponse {
-
-    private Integer code;
 
     private String message;
 }
