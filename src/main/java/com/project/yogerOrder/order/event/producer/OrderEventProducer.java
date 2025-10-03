@@ -12,4 +12,6 @@ public interface OrderEventProducer {
     void publishOrderDeductionAfterCanceledEvent(OrderEntity orderEntity);
 
     void publishPaymentCompletedAfterOrderCanceledEvent(OrderEntity orderEntity);
+    
+    void publishConfirmProductReservationEvent(OrderEntity orderEntity);
 }

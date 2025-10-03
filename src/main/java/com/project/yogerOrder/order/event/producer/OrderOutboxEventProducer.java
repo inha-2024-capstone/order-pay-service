@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderState;
+import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.order.event.DeductionAfterOrderCanceledEvent;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.order.event.OrderCompletedEvent;
@@ -12,6 +13,8 @@ import com.project.yogerOrder.order.event.OrderErroredEvent;
 import com.project.yogerOrder.order.event.OrderEventType;
 import com.project.yogerOrder.order.event.PaymentCompletedAfterOrderCanceledEvent;
 import com.project.yogerOrder.order.event.outbox.service.OrderOutboxService;
+import com.project.yogerOrder.product.event.ProductEventType;
+import com.project.yogerOrder.product.event.outbox.service.ProductOutboxService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 public class OrderOutboxEventProducer implements OrderEventProducer {
 
     private final OrderOutboxService orderOutboxService;
+    
+    private final ProductOutboxService productOutboxService;
 
     @Override
     public void publishEventByState(OrderEntity orderEntity, OrderState beforeState) {
@@ -71,6 +76,14 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
         orderOutboxService.saveOutbox(
             OrderEventType.PAYMENT_COMPLETED_AFTER_CANCELED,
             PaymentCompletedAfterOrderCanceledEvent.from(orderEntity)
+        );
+    }
+    
+    @Override
+    public void publishConfirmProductReservationEvent(OrderEntity orderEntity) {
+        productOutboxService.saveOutbox(
+            ProductEventType.CONFIRM_RESERVATION,
+            ConfirmProductReservationEvent.from(orderEntity)
         );
     }
 }
