@@ -12,6 +12,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import com.project.yogerOrder.global.util.db.MongoTransactional;
 import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
 import com.project.yogerOrder.order.config.OrderConfig;
+import com.project.yogerOrder.order.dto.request.ConfirmReservationsRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrderItemRequestDTO;
 import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.dto.response.OrderResponseDTOs;
@@ -84,6 +85,14 @@ public class OrderService {
 
             return price * item.quantity();
         }).sum();
+    }
+    
+    public void confirmReservations(ConfirmReservationsRequestDTO requestDTO) {
+        orderEventProducer.publishConfirmProductReservationEvent(
+            requestDTO.orderId(),
+            requestDTO.buyerId(),
+            requestDTO.orderItemRequestDTOs().stream().map(OrderItemRequestDTO::toOrderItem).collect(Collectors.toList())
+        );
     }
 
 
