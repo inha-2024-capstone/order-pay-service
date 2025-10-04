@@ -225,7 +225,8 @@ public class KafkaConfig {
         return new KafkaAdmin.NewTopics(
             TopicBuilder.name(ProductTopic.DEDUCTION_COMPLETED).build(),
             TopicBuilder.name(ProductTopic.DEDUCTION_FAILED).build(),
-            TopicBuilder.name(ProductTopic.UPDATED).build()
+            TopicBuilder.name(ProductTopic.UPDATED).build(),
+            TopicBuilder.name(ProductTopic.CONFIRM_RESERVATION).build()
         );
     }
 
