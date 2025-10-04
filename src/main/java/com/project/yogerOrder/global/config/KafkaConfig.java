@@ -4,27 +4,34 @@ import java.util.HashMap;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.transaction.KafkaTransactionManager;
 
-import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.event.OrderCanceledEvent;
 import com.project.yogerOrder.order.event.OrderCompletedEvent;
-import com.project.yogerOrder.payment.event.config.PaymentTopic;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
-import com.project.yogerOrder.product.event.config.ProductTopic;
+import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
+import com.project.yogerOrder.product.event.config.ProductTopic;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,11 +41,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class KafkaConfig {
 
-    public static final String ORDER_GROUP = "order-group";
-    public static final String PAYMENT_GROUP = "payment-group";
-    public static final String CART_GROUP = "cart-group";
-    public static final String PRODUCT_GROUP = "product-group";
-
+    
+    // Admin Config
+    
     @Configuration
     @RequiredArgsConstructor
     public static class KafkaAdminConfig {
@@ -58,7 +63,46 @@ public class KafkaConfig {
         }
 
     }
-
+    
+    
+    // Producer Config
+    
+    @Configuration
+    @RequiredArgsConstructor
+    public static class KafkaProducerConfig {
+        
+        private final KafkaProducerConfigValue configValue;
+        
+        @ConfigurationProperties(prefix = "kafka.producer")
+        public record KafkaProducerConfigValue(@NotBlank String bootstrapServers, @NotNull Boolean enableIdempotence,
+                                               @NotNull String transactionIdPrefix) {
+        }
+        
+        private HashMap<String, Object> producerConfig() {
+            HashMap<String, Object> config = new HashMap<>();
+            config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
+            config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+            config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, configValue.enableIdempotence);
+            config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, configValue.transactionIdPrefix);
+            
+            return config;
+        }
+        
+        @Bean
+        public KafkaTemplate<String, Object> OrderCreatedEventKafkaTemplate() {
+            return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerConfig()));
+        }
+    }
+    
+    // Consumer Config
+    
+    public static final String ORDER_GROUP = "order-group";
+    public static final String PAYMENT_GROUP = "payment-group";
+    public static final String CART_GROUP = "cart-group";
+    public static final String PRODUCT_GROUP = "product-group";
+    
+    
     @Configuration
     @RequiredArgsConstructor
     public static class KafkaConsumerConfig {
@@ -197,6 +241,14 @@ public class KafkaConfig {
             factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
             return factory;
         }
+    }
+    
+    
+    // Common Config
+    
+    @Bean
+    public KafkaTransactionManager<String, String> kafkaTransactionManager(ProducerFactory<String, String> producerFactory) {
+        return new KafkaTransactionManager<>(producerFactory);
     }
 
     @Bean

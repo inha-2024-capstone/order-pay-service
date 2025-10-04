@@ -23,7 +23,7 @@ import com.redis.testcontainers.RedisContainer;
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class, KafkaTestConfig.class})
+@Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class})
 public abstract class UsingTestContainerTest {
 
     @Autowired
