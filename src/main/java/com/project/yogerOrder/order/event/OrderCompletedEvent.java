@@ -47,7 +47,7 @@ public record OrderCompletedEvent(@NotNull String orderId, @NotBlank String even
 
 
         private List<OrderItemRequestDTO> toDTOs() {
-            return orderItems.stream().map(OrderItemData::toDTO).collect(Collectors.toList());
+            return orderItems.stream().map(OrderItemRequestDTO::from).collect(Collectors.toList());
         }
 
     }

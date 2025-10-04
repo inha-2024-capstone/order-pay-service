@@ -1,13 +1,10 @@
 package com.project.yogerOrder.global.exception;
 
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
 public abstract class CustomRuntimeException extends RuntimeException {
-
-    protected Integer code;
 
     protected final HttpStatus httpStatus;
 
@@ -26,13 +23,5 @@ public abstract class CustomRuntimeException extends RuntimeException {
         super(cause);
         this.httpStatus = httpStatus;
         this.message = message;
-    }
-
-    @PostConstruct
-    public void init() {
-        Class<? extends CustomRuntimeException> aClass = this.getClass();
-        CustomExceptionEnum byExceptionClass = CustomExceptionEnum.getByExceptionClass(aClass);
-
-        this.code = byExceptionClass.getCode();
     }
 }
