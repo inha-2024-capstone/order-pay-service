@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.event.OrderItemData;
 
@@ -16,12 +15,12 @@ import jakarta.validation.constraints.NotNull;
 public record ConfirmProductReservationEvent(@NotNull String orderId, @NotBlank String eventId, @NotBlank ProductEventType eventType,
                                              @NotNull ConfirmProductReservationData data, @NotNull LocalDateTime occurrenceDateTime) {
 
-    public static ConfirmProductReservationEvent from(OrderEntity orderEntity) {
+    public static ConfirmProductReservationEvent of(String orderId, Long buyerId, List<OrderItem> orderItems) {
         return new ConfirmProductReservationEvent(
-                orderEntity.getId(),
+                orderId,
                 UUID.randomUUID().toString(),
                 ProductEventType.CONFIRM_RESERVATION,
-                ConfirmProductReservationData.of(orderEntity.getBuyerId(), orderEntity.getOrderItems()),
+                ConfirmProductReservationData.of(buyerId, orderItems),
                 LocalDateTime.now()
         );
     }
