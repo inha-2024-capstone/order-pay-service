@@ -7,7 +7,7 @@ public class PaymentTopic {
     public static final String CANCELED = "yoger.payment.prd.canceled";
     public static final String ERRORED = "yoger.payment.prd.errored";
 
-    public static String getTopicByEvent(PaymentEventType paymentEventType) {
+    public static String getTopicByEventType(PaymentEventType paymentEventType) {
         return switch (paymentEventType) {
             case COMPLETED -> COMPLETED;
             case CANCELED -> CANCELED;
