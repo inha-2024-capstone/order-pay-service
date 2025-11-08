@@ -28,6 +28,7 @@ import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
+import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
@@ -78,7 +79,8 @@ public class KafkaConfig {
                                                @NotNull String transactionIdPrefix) {
         }
         
-        private HashMap<String, Object> producerConfig() {
+        @Bean
+        public ProducerFactory<String, Object> producerFactory() {
             HashMap<String, Object> config = new HashMap<>();
             config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configValue.bootstrapServers);
             config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -86,12 +88,12 @@ public class KafkaConfig {
             config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, configValue.enableIdempotence);
             config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, configValue.transactionIdPrefix);
             
-            return config;
+            return new DefaultKafkaProducerFactory<>(config);
         }
         
         @Bean
-        public KafkaTemplate<String, Object> OrderCreatedEventKafkaTemplate() {
-            return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerConfig()));
+        public KafkaTemplate<String, Object> OrderCreatedEventKafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+            return new KafkaTemplate<>(producerFactory);
         }
     }
     
@@ -247,7 +249,7 @@ public class KafkaConfig {
     // Common Config
     
     @Bean
-    public KafkaTransactionManager<String, String> kafkaTransactionManager(ProducerFactory<String, String> producerFactory) {
+    public KafkaTransactionManager<String, Object> kafkaTransactionManager(ProducerFactory<String, Object> producerFactory) {
         return new KafkaTransactionManager<>(producerFactory);
     }
 
