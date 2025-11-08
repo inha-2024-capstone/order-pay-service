@@ -308,4 +308,47 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
         }
     }
     
+    
+    private final BlockingQueue<ConfirmProductReservationEvent> ConfirmProductReservationEvents = new LinkedBlockingQueue<>();
+
+    @KafkaListener(topics = ProductTopic.CONFIRM_RESERVATION, groupId = "orderTestGroup",
+        containerFactory = TestKafkaConfig.CONFIRM_RESERVATION_FACTORY)
+    public void listenConfirmProductReservationEvent(ConfirmProductReservationEvent event, Acknowledgment acknowledgment) {
+        ConfirmProductReservationEvents.add(event);
+        acknowledgment.acknowledge();
+    }
+    
+    @Test
+    void confirmProductReservationTest() {
+        // given
+        Integer tempPrice = 30000;
+        OrderEntity orderEntity = OrderEntity.createPendingOrder(orderItems, tempPrice, userId);
+        ReflectionTestUtils.setField(orderEntity, "id", orderId);
+        ReflectionTestUtils.setField(orderEntity, "state", OrderState.COMPLETED);
+        ReflectionTestUtils.setField(orderEntity, "version", 1L);
+        
+        OrderCompletedEvent event = OrderCompletedEvent.from(orderEntity);
+        
+        // when
+        kafkaTemplate.executeInTransaction(kafkaTemplate -> {
+			try {
+				kafkaTemplate.send(OrderTopic.getTopicByEventType(event.eventType()), event).get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+			
+            return null;
+        });
+        
+        await()
+            .pollInterval(Duration.ofSeconds(1))
+            .atMost(Duration.ofSeconds(30))
+            .untilAsserted(() -> {
+                ConfirmProductReservationEvent receivedEvent = ConfirmProductReservationEvents.poll();
+                
+                Assertions.assertNotNull(receivedEvent);
+                Assertions.assertEquals(orderId, receivedEvent.orderId());
+            });
+    }
+    
 }
