@@ -52,6 +52,10 @@ public abstract class UsingTestContainerTest {
         registry.add("kafka.producer.bootstrap-servers", () -> bootstrapServers);
         registry.add("kafka.consumer.bootstrap-servers", () -> bootstrapServers);
     }
+    
+    public static String getKafkaBootstrapServers() {
+        return KAFKA_CONTAINER.getBootstrapServers();
+    }
 
     @Container
     static final RedisContainer REDIS_CONTAINER = new RedisContainer("redis:7.0.11-alpine");
