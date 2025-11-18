@@ -32,6 +32,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
@@ -69,7 +70,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     @Autowired
     OrderRepository orderRepository;
 
-    @MockBean
+    @MockitoBean
     ProductService productService;
     
     @MockBean
