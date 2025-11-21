@@ -62,7 +62,7 @@ public class OrderService {
             .stream().map(OrderItemRequestDTO::toOrderItem)
             .toList();
 
-        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, calculateTotalPrice(orderItems), userId);
+        OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, 100/*calculateTotalPrice(orderItems)*/, userId);
         
         productService.reserveStocks(pendingOrder.getId(), pendingOrder.getOrderItems());
         
@@ -155,7 +155,7 @@ public class OrderService {
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState -> orderRepository.findAllByState(orderState)
-            .parallelStream()
+            .stream() //TODO 여기 때문에 트랜잭션이 적용되지 않아서 에러 발생함
             .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
             .forEach(this::updateByExpiration)
         );

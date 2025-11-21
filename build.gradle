@@ -84,5 +84,5 @@ tasks.named('test') {
 }
 
 bootBuildImage {
-	imageName = "sa20207/yoger_order"
+	imageName = "sa20207/yoger_order:21_in_linux"
 }

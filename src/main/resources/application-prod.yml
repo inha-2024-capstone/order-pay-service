@@ -3,7 +3,7 @@ spring:
         name: yogerOrder
 
     datasource:
-        url: jdbc:mysql://${DB_URL}:3306/${DB_NAME}?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
+        url: jdbc:mysql://${DB_URL}:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
         driver-class-name: com.mysql.cj.jdbc.Driver
         username: ${DB_USERNAME}
         password: ${DB_PASSWORD}
@@ -24,7 +24,14 @@ spring:
         redis:
             host: ${REDIS_HOST}
             port: ${REDIS_PORT}
-            password: ${REDIS_PASSWORD}
+            #password: ${REDIS_PASSWORD}
+
+        mongodb:
+            host: ${MONGO_HOST}
+            port: ${MONGO_PORT}
+            database: ${MONGO_DB_NAME}
+            replica-set-name: rs0
+            uri: mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?replicaSet=rs0
 
 portOne:
     v1:
@@ -57,6 +64,10 @@ management:
 kafka:
     admin:
         bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+    producer:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+        enable-idempotence: true
+        transaction-id-prefix: tx-
     consumer:
         bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
         auto-offset-reset: earliest
