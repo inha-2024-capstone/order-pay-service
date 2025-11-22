@@ -1,6 +1,7 @@
 package com.project.yogerOrder.product;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
+import com.project.yogerOrder.product.dto.request.UpsertProductRequestDTO;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ProductUpdatedEvent;
 import com.project.yogerOrder.product.event.config.ProductTopic;
@@ -56,6 +57,23 @@ public class ProductIntegrationTest extends UsingTestContainerTest {
 				Assertions.assertEquals(stock, productResponseDTO.stock());
 				Assertions.assertEquals(price, productResponseDTO.price());
 			});
+	}
+
+	@Test
+	void productFindTest() {
+		Long productId = 1L;
+		Long productId2 = 2L;
+		String name = "proName";
+		Integer stock = 50;
+		Integer price = 3000;
+
+
+		productService.upsertProduct(new UpsertProductRequestDTO(productId, name, stock, price));
+		productService.upsertProduct(new UpsertProductRequestDTO(productId2, name, stock, price));
+
+		List<ProductResponseDTO> byIds = productService.findByIds(List.of(productId, productId2));
+
+		Assertions.assertEquals(2, byIds.size());
 	}
 
 }
