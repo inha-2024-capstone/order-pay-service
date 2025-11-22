@@ -44,9 +44,10 @@ public class OrderService {
 
     private final ProductService productService;
 
+    private final OrderTransactionService orderTransactionService;
+
 
     // CREATE
-    @MongoTransactional
     public String orderProduct(Long userId, OrderRequestDTO orderRequestDTO) {
         try {
             orderDuplicateCheckService.register(orderRequestDTO.orderRequestId());
@@ -63,11 +64,7 @@ public class OrderService {
         
         productService.reserveStocks(pendingOrder.getId(), pendingOrder.getOrderItems());
         
-        OrderEntity orderEntity = orderRepository.save(pendingOrder);
-
-        orderEventProducer.publishOrderCreatedEvent(orderEntity);
-
-        return orderEntity.getId();
+        return orderTransactionService.saveOrder(pendingOrder);
     }
 
     private Integer calculateTotalPrice(List<OrderItem> orderItems) {
@@ -152,7 +149,7 @@ public class OrderService {
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState -> orderRepository.findAllByState(orderState)
-            .stream() //TODO 여기 때문에 트랜잭션이 적용되지 않아서 에러 발생함
+            .stream()
             .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
             .forEach(this::updateByExpiration)
         );
