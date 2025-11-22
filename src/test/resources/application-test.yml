@@ -21,6 +21,10 @@ port-one:
     v2:
         APISecret: ${V2_APISECRET}
 
+
+product:
+    url: "http://localhost:8081/api/products"
+
 order:
     valid-time: 5
     cron:

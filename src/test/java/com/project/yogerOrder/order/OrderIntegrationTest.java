@@ -50,7 +50,6 @@ import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
-import com.project.yogerOrder.payment.event.consumer.PaymentEventConsumer;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
