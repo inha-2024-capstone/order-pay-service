@@ -51,7 +51,7 @@ dependencies {
 	// Redisson
 	implementation 'org.redisson:redisson-spring-boot-starter:3.45.1'
  	// custom yoger
-	implementation 'com.github.inha-2024-capstone:yoger-library:v0.4.0'
+	implementation 'com.github.inha-2024-capstone:yoger-library:v0.4.1'
 
 	// Payment
 	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
