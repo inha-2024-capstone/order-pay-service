@@ -27,7 +27,6 @@ import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.entity.OrderState;
 import com.project.yogerOrder.order.event.producer.OrderEventProducer;
-import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.order.util.duplicate.service.OrderDuplicateCheckService;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
@@ -41,10 +40,10 @@ class OrderServiceTest {
     OrderConfig orderConfig;
 
     @Mock
-    OrderRepository orderRepository;
-
-    @Mock
     OrderEventProducer orderEventProducer;
+    
+    @Mock
+    OrderTransactionService orderTransactionService;
 
     @Mock
     OrderDuplicateCheckService orderDuplicateCheckService;
@@ -56,7 +55,6 @@ class OrderServiceTest {
     ProductService productService;
 
 
-    String orderId = "tempOrderId";
     Long userId = 1L;
 
     Long productId1 = 1L;
@@ -82,20 +80,18 @@ class OrderServiceTest {
         Integer totalPrice = price1 * quantity1 + price2 * quantity2;
 
         OrderEntity pendingOrder = OrderEntity.createPendingOrder(orderItems, totalPrice, userId);
-        ReflectionTestUtils.setField(pendingOrder, "id", orderId);
 
         // when
-        Mockito.when(orderRepository.save(orderCaptor.capture())).thenReturn(pendingOrder);
+        Mockito.when(orderTransactionService.saveOrder(orderCaptor.capture())).thenReturn(pendingOrder.getId());
         Mockito.when(productService.findByIds(orderItems.stream().map(OrderItem::productId).toList()))
             .thenReturn(List.of(
                 new ProductResponseDTO(orderItem1.productId(), price1, quantity1 * 2),
                 new ProductResponseDTO(orderItem2.productId(), price2, quantity2 * 2))
             );
 
-        String id = orderService.orderProduct(userId, orderRequestDTO);
+        orderService.orderProduct(userId, orderRequestDTO);
 
         // then
-        Assertions.assertThat(id).isEqualTo(orderId);
         Assertions.assertThat(orderCaptor.getValue().getOrderItems()).usingRecursiveComparison().isEqualTo(orderItems);
         Assertions.assertThat(orderCaptor.getValue().getBuyerId()).isEqualTo(userId);
         Assertions.assertThat(orderCaptor.getValue().getTotalPrice()).isEqualTo(totalPrice);
