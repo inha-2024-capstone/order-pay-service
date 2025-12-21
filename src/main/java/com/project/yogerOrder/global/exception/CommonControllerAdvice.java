@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
-//@RestControllerAdvice
+@RestControllerAdvice
 public class CommonControllerAdvice {
 
-    /*@ExceptionHandler(CustomRuntimeException.class)
+    @ExceptionHandler(CustomRuntimeException.class)
     public ResponseEntity<ErrorResponse> handleDefaultException(CustomRuntimeException e) {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), e.getHttpStatus());
     }
@@ -21,6 +21,6 @@ public class CommonControllerAdvice {
         log.error("unhandled exception occurred", e);
         UnHandledException unHandledException = new UnHandledException();
         return new ResponseEntity<>(new ErrorResponse(unHandledException.getMessage()), unHandledException.getHttpStatus());
-    }*/
+    }
 
 }
