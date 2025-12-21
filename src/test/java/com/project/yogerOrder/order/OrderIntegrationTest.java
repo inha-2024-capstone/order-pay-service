@@ -23,7 +23,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -50,6 +49,7 @@ import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.consumer.PaymentEventConsumer;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
@@ -71,8 +71,8 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     @MockitoBean
     ProductService productService;
-    
-    @MockBean
+	
+	@MockitoBean
     PaymentEventConsumer paymentEventConsumer;
 
     private static final Long userId = 3L;

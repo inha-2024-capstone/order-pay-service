@@ -10,7 +10,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -19,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.yogerOrder.global.exception.ErrorResponse;
 import com.project.yogerOrder.order.entity.OrderItem;
+import com.project.yogerOrder.product.cache.service.ProductCacheService;
 import com.project.yogerOrder.product.config.ProductConfig;
 import com.project.yogerOrder.product.exception.ProductInsufficientException;
 import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
@@ -36,7 +36,7 @@ import com.project.yogerOrder.product.service.ProductServiceImpl;
 })
 public class ProductExternalTest {
 	
-	@MockBean
+	@MockitoBean
 	private ProductConfig config;
 	
 	@Autowired
@@ -47,6 +47,9 @@ public class ProductExternalTest {
 	
 	@MockitoBean
 	private ProductRepository productRepository;
+	
+	@MockitoBean
+	private ProductCacheService productCacheService;
 	
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	
