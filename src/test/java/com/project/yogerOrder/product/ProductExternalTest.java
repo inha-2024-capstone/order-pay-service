@@ -35,7 +35,7 @@ import com.project.yogerOrder.product.service.ProductServiceImpl;
 })
 public class ProductExternalTest {
 	
-	@Autowired
+	@MockBean
 	private ProductConfig config;
 	
 	@Autowired
@@ -56,7 +56,7 @@ public class ProductExternalTest {
 		String orderId = UUID.randomUUID().toString();
 		List<OrderItem> orderItems = List.of(new OrderItem(1L, 2), new OrderItem(2L, 3));
 		
-		String url = config.url() + "/stocks/reserve";
+		String url = "/stocks/reserve";
 		
 		mockServer.expect(requestTo(url)).andRespond(
 			withRequestConflict()
