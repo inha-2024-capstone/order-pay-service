@@ -11,7 +11,7 @@ public class OrderTopic {
     public static final String ERRORED = "yoger.order.prd.errored";
 
 
-    public static String getTopicByEvent(OrderEventType orderEventType) {
+    public static String getTopicByEventType(OrderEventType orderEventType) {
         return switch (orderEventType) {
             case CREATED -> CREATED;
             case COMPLETED -> COMPLETED;

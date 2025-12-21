@@ -23,7 +23,7 @@ import com.redis.testcontainers.RedisContainer;
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class, KafkaTestConfig.class})
+@Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class})
 public abstract class UsingTestContainerTest {
 
     @Autowired
@@ -51,6 +51,10 @@ public abstract class UsingTestContainerTest {
         registry.add("kafka.admin.bootstrap-servers", () -> bootstrapServers);
         registry.add("kafka.producer.bootstrap-servers", () -> bootstrapServers);
         registry.add("kafka.consumer.bootstrap-servers", () -> bootstrapServers);
+    }
+    
+    public static String getKafkaBootstrapServers() {
+        return KAFKA_CONTAINER.getBootstrapServers();
     }
 
     @Container

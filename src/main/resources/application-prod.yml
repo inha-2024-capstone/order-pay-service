@@ -38,6 +38,9 @@ order:
     cron:
         expiration: '0 0/1 * * * *'
 
+product:
+    url: ${PRODUCT_URL}
+
 logging:
     level:
         org.library.yogerLibrary.log: DEBUG

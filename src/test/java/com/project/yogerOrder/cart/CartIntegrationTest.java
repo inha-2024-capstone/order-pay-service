@@ -101,7 +101,7 @@ public class CartIntegrationTest extends UsingTestContainerTest {
 
 		// when
 		kafkaTemplate.executeInTransaction(kafkaTemplate ->
-			kafkaTemplate.send(OrderTopic.getTopicByEvent(orderCompletedEvent.eventType()), orderCompletedEvent)
+			kafkaTemplate.send(OrderTopic.getTopicByEventType(orderCompletedEvent.eventType()), orderCompletedEvent)
 		);
 
 		// then

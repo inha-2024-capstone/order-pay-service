@@ -3,9 +3,13 @@ package com.project.yogerOrder.order.event.consumer;
  import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-
-import com.project.yogerOrder.global.config.KafkaConfig;
-import com.project.yogerOrder.order.service.OrderService;
+ import org.springframework.transaction.annotation.Transactional;
+ 
+ import com.project.yogerOrder.global.config.KafkaConfig;
+ import com.project.yogerOrder.order.dto.request.ConfirmReservationsRequestDTO;
+ import com.project.yogerOrder.order.event.OrderCompletedEvent;
+ import com.project.yogerOrder.order.event.config.OrderTopic;
+ import com.project.yogerOrder.order.service.OrderService;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
@@ -50,6 +54,17 @@ public class OrderEventConsumer {
     public void paymentCanceled(PaymentCanceledEvent event, Acknowledgment acknowledgment) {
         orderService.updateByPaymentCanceled(event.getOrderId());
 
+        acknowledgment.acknowledge();
+    }
+    
+    @KafkaListener(topics = OrderTopic.COMPLETED, groupId = KafkaConfig.ORDER_GROUP,
+        containerFactory = KafkaConfig.KafkaConsumerConfig.ORDER_COMPLETED_FACTORY)
+    @Transactional(transactionManager = "kafkaTransactionManager")
+    public void orderCompleted(OrderCompletedEvent event, Acknowledgment acknowledgment) {
+        orderService.confirmReservations(
+            new ConfirmReservationsRequestDTO(event.orderId(), event.getUserId(), event.getOrderItems())
+        );
+        
         acknowledgment.acknowledge();
     }
 }

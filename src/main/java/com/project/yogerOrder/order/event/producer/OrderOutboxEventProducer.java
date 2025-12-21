@@ -17,11 +17,11 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class OrderOutboxEventProducer implements OrderEventProducer {
+public class OrderOutboxEventProducer {
 
     private final OrderOutboxService orderOutboxService;
 
-    @Override
+    
     public void publishEventByState(OrderEntity orderEntity, OrderState beforeState) {
         Boolean isStockOccupied = beforeState.isStockOccupied();
         Boolean isPaymentCompleted = beforeState.isPaymentCompleted();
@@ -42,7 +42,6 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
         }
     }
 
-    @Override
     public void publishOrderCreatedEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(OrderEventType.CREATED, OrderCreatedEvent.from(orderEntity));
     }
@@ -59,7 +58,6 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
         orderOutboxService.saveOutbox(OrderEventType.ERRORED, OrderErroredEvent.from(orderEntity));
     }
 
-    @Override
     public void publishOrderDeductionAfterCanceledEvent(OrderEntity orderEntity) {
         orderOutboxService.saveOutbox(
             OrderEventType.DEDUCTION_AFTER_CANCELED,
@@ -73,4 +71,5 @@ public class OrderOutboxEventProducer implements OrderEventProducer {
             PaymentCompletedAfterOrderCanceledEvent.from(orderEntity)
         );
     }
+    
 }

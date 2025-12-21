@@ -4,10 +4,16 @@ import static org.awaitility.Awaitility.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,8 +22,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
@@ -27,13 +41,17 @@ import com.project.yogerOrder.order.dto.request.OrderRequestDTO;
 import com.project.yogerOrder.order.entity.OrderEntity;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.order.entity.OrderState;
+import com.project.yogerOrder.order.event.OrderCompletedEvent;
+import com.project.yogerOrder.order.event.config.OrderTopic;
 import com.project.yogerOrder.order.repository.OrderRepository;
 import com.project.yogerOrder.order.util.duplicate.exception.OrderDuplicatedException;
 import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.consumer.PaymentEventConsumer;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
+import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
 import com.project.yogerOrder.product.event.ProductDeductionFailedEvent;
 import com.project.yogerOrder.product.event.config.ProductTopic;
@@ -53,6 +71,9 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     @MockBean
     ProductService productService;
+    
+    @MockBean
+    PaymentEventConsumer paymentEventConsumer;
 
     private static final Long userId = 3L;
     private static final Long paymentId = 4L;
@@ -260,5 +281,97 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
         // then
         Assertions.assertThrows(OrderDuplicatedException.class, () -> orderController.orderProduct(userId, orderRequestDTO));
     }
-
+    
+    public static class TestEventConsumer {
+        private final BlockingQueue<ConfirmProductReservationEvent> events = new LinkedBlockingQueue<>();
+        
+        @KafkaListener(topics = ProductTopic.CONFIRM_RESERVATION, groupId = "orderTestGroup",
+            containerFactory = TestKafkaConfig.CONFIRM_RESERVATION_FACTORY)
+        public void listen(ConfirmProductReservationEvent event, Acknowledgment acknowledgment) {
+            events.add(event);
+            acknowledgment.acknowledge();
+        }
+        
+        public void clear() {
+            events.clear();
+        }
+        
+        public ConfirmProductReservationEvent poll() {
+            return events.poll();
+        }
+    }
+    
+    @TestConfiguration
+    public static class TestKafkaConfig {
+        
+        private static final String CONFIRM_RESERVATION_FACTORY = "confirmReservationFactory";
+        
+        private HashMap<String, Object> consumerConfig() {
+            HashMap<String, Object> config = new HashMap<>();
+            config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getKafkaBootstrapServers());
+            config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+            
+            return config;
+        }
+        
+        @Bean(CONFIRM_RESERVATION_FACTORY)
+        public ConcurrentKafkaListenerContainerFactory<String, ConfirmProductReservationEvent> confirmProductReservationEventConcurrentKafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory<String, ConfirmProductReservationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+            
+            DefaultKafkaConsumerFactory<String, ConfirmProductReservationEvent> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                consumerConfig(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(ConfirmProductReservationEvent.class, false)
+            );
+            
+            factory.setConsumerFactory(consumerFactory);
+            factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+            return factory;
+        }
+        
+        @Bean
+        public TestEventConsumer testEventConsumer() {
+            return new TestEventConsumer();
+        }
+    }
+    
+    
+    @Autowired
+    TestEventConsumer testEventConsumer;
+    
+    @Test
+    void confirmProductReservationTest() {
+        // given
+        testEventConsumer.clear();
+        
+        Integer tempPrice = 30000;
+        OrderEntity orderEntity = OrderEntity.createPendingOrder(orderItems, tempPrice, userId);
+        ReflectionTestUtils.setField(orderEntity, "id", orderId);
+        ReflectionTestUtils.setField(orderEntity, "state", OrderState.COMPLETED);
+        ReflectionTestUtils.setField(orderEntity, "version", 1L);
+        
+        OrderCompletedEvent event = OrderCompletedEvent.from(orderEntity);
+        
+        // when
+        kafkaTemplate.executeInTransaction(kafkaTemplate -> {
+			try {
+				kafkaTemplate.send(OrderTopic.getTopicByEventType(event.eventType()), event).get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+			
+            return null;
+        });
+        
+        await()
+            .pollInterval(Duration.ofSeconds(1))
+            .atMost(Duration.ofSeconds(30))
+            .untilAsserted(() -> {
+                ConfirmProductReservationEvent receivedEvent = testEventConsumer.poll();
+                
+                Assertions.assertNotNull(receivedEvent);
+                Assertions.assertEquals(orderId, receivedEvent.orderId());
+            });
+    }
+    
 }
