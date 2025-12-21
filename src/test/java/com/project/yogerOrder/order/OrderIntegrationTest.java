@@ -49,6 +49,7 @@ import com.project.yogerOrder.payment.entity.PaymentEntity;
 import com.project.yogerOrder.payment.event.PaymentCanceledEvent;
 import com.project.yogerOrder.payment.event.PaymentCompletedEvent;
 import com.project.yogerOrder.payment.event.config.PaymentTopic;
+import com.project.yogerOrder.payment.event.consumer.PaymentEventConsumer;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.event.ConfirmProductReservationEvent;
 import com.project.yogerOrder.product.event.ProductDeductionCompletedEvent;
@@ -70,6 +71,9 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
 
     @MockBean
     ProductService productService;
+    
+    @MockBean
+    PaymentEventConsumer paymentEventConsumer;
 
     private static final Long userId = 3L;
     private static final Long paymentId = 4L;
@@ -278,6 +282,24 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
         Assertions.assertThrows(OrderDuplicatedException.class, () -> orderController.orderProduct(userId, orderRequestDTO));
     }
     
+    public static class TestEventConsumer {
+        private final BlockingQueue<ConfirmProductReservationEvent> events = new LinkedBlockingQueue<>();
+        
+        @KafkaListener(topics = ProductTopic.CONFIRM_RESERVATION, groupId = "orderTestGroup",
+            containerFactory = TestKafkaConfig.CONFIRM_RESERVATION_FACTORY)
+        public void listen(ConfirmProductReservationEvent event, Acknowledgment acknowledgment) {
+            events.add(event);
+            acknowledgment.acknowledge();
+        }
+        
+        public void clear() {
+            events.clear();
+        }
+        
+        public ConfirmProductReservationEvent poll() {
+            return events.poll();
+        }
+    }
     
     @TestConfiguration
     public static class TestKafkaConfig {
@@ -306,21 +328,22 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
             factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
             return factory;
         }
+        
+        @Bean
+        public TestEventConsumer testEventConsumer() {
+            return new TestEventConsumer();
+        }
     }
     
     
-    private final BlockingQueue<ConfirmProductReservationEvent> ConfirmProductReservationEvents = new LinkedBlockingQueue<>();
-
-    @KafkaListener(topics = ProductTopic.CONFIRM_RESERVATION, groupId = "orderTestGroup",
-        containerFactory = TestKafkaConfig.CONFIRM_RESERVATION_FACTORY)
-    public void listenConfirmProductReservationEvent(ConfirmProductReservationEvent event, Acknowledgment acknowledgment) {
-        ConfirmProductReservationEvents.add(event);
-        acknowledgment.acknowledge();
-    }
+    @Autowired
+    TestEventConsumer testEventConsumer;
     
     @Test
     void confirmProductReservationTest() {
         // given
+        testEventConsumer.clear();
+        
         Integer tempPrice = 30000;
         OrderEntity orderEntity = OrderEntity.createPendingOrder(orderItems, tempPrice, userId);
         ReflectionTestUtils.setField(orderEntity, "id", orderId);
@@ -344,7 +367,7 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
             .pollInterval(Duration.ofSeconds(1))
             .atMost(Duration.ofSeconds(30))
             .untilAsserted(() -> {
-                ConfirmProductReservationEvent receivedEvent = ConfirmProductReservationEvents.poll();
+                ConfirmProductReservationEvent receivedEvent = testEventConsumer.poll();
                 
                 Assertions.assertNotNull(receivedEvent);
                 Assertions.assertEquals(orderId, receivedEvent.orderId());
