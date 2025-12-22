@@ -1,14 +1,5 @@
 package com.project.yogerOrder.order.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-
 import com.project.yogerOrder.global.util.db.MongoTransactional;
 import com.project.yogerOrder.global.util.lock.OptimisticLockRetry;
 import com.project.yogerOrder.order.config.OrderConfig;
@@ -28,9 +19,15 @@ import com.project.yogerOrder.order.util.stateMachine.OrderStateChangeEvent;
 import com.project.yogerOrder.product.dto.response.ProductResponseDTO;
 import com.project.yogerOrder.product.exception.ProductNotFoundException;
 import com.project.yogerOrder.product.service.ProductService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,9 +44,10 @@ public class OrderService {
 
     private final ProductService productService;
 
+    private final OrderTransactionService orderTransactionService;
+
 
     // CREATE
-    @MongoTransactional
     public String orderProduct(Long userId, OrderRequestDTO orderRequestDTO) {
         try {
             orderDuplicateCheckService.register(orderRequestDTO.orderRequestId());
@@ -66,11 +64,7 @@ public class OrderService {
         
         productService.reserveStocks(pendingOrder.getId(), pendingOrder.getOrderItems());
         
-        OrderEntity orderEntity = orderRepository.save(pendingOrder);
-
-        orderEventProducer.publishOrderCreatedEvent(orderEntity);
-
-        return orderEntity.getId();
+        return orderTransactionService.saveOrder(pendingOrder);
     }
 
     private Integer calculateTotalPrice(List<OrderItem> orderItems) {
@@ -155,7 +149,7 @@ public class OrderService {
     @SchedulerLock(name = "orderExpirationSchedule", lockAtMostFor = "PT50S", lockAtLeastFor = "PT40S")
     public void orderExpirationSchedule() {
         OrderState.getPayableStates().forEach(orderState -> orderRepository.findAllByState(orderState)
-            .parallelStream()
+            .stream()
             .filter(orderEntity -> !orderEntity.isPayable(config.validTime()))
             .forEach(this::updateByExpiration)
         );

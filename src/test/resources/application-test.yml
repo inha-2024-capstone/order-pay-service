@@ -8,6 +8,7 @@ spring:
         properties:
             hibernate:
                 format_sql: true
+        open-in-view: false
 
     threads:
         virtual:
@@ -19,6 +20,10 @@ port-one:
         APISecret: ${V1_APISECRET}
     v2:
         APISecret: ${V2_APISECRET}
+
+
+product:
+    url: "http://localhost:8081/api/products"
 
 order:
     valid-time: 5

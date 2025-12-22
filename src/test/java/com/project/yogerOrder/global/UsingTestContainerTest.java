@@ -8,6 +8,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -23,6 +24,7 @@ import com.redis.testcontainers.RedisContainer;
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@TestPropertySource(locations = "classpath:application-test.yml")
 @Import({MysqlInitializer.class, RedisInitializer.class, MongoDBInitializer.class})
 public abstract class UsingTestContainerTest {
 

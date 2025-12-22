@@ -23,7 +23,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -32,6 +31,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
@@ -69,10 +69,10 @@ public class OrderIntegrationTest extends UsingTestContainerTest {
     @Autowired
     OrderRepository orderRepository;
 
-    @MockBean
+    @MockitoBean
     ProductService productService;
-    
-    @MockBean
+	
+	@MockitoBean
     PaymentEventConsumer paymentEventConsumer;
 
     private static final Long userId = 3L;
