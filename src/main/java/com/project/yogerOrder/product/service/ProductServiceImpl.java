@@ -1,8 +1,8 @@
 package com.project.yogerOrder.product.service;
 
 import com.project.yogerOrder.order.entity.OrderItem;
-import com.project.yogerOrder.product.cache.entity.ProductCacheEntity;
-import com.project.yogerOrder.product.cache.service.ProductCacheService;
+import com.project.yogerOrder.product.cache.domain.entity.ProductCacheEntity;
+import com.project.yogerOrder.product.cache.domain.service.ProductCacheService;
 import com.project.yogerOrder.product.config.ProductConfig;
 import com.project.yogerOrder.product.dto.request.ReserveProductsRequestDTO;
 import com.project.yogerOrder.product.dto.request.UpsertProductRequestDTO;

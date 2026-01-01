@@ -1,7 +1,7 @@
-package com.project.yogerOrder.product.cache.repository;
+package com.project.yogerOrder.product.cache.domain.repository;
 
 import com.project.yogerOrder.global.util.db.ExcludeFromJpaRepository;
-import com.project.yogerOrder.product.cache.entity.ProductCacheEntity;
+import com.project.yogerOrder.product.cache.domain.entity.ProductCacheEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

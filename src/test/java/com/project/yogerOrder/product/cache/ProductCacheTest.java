@@ -1,8 +1,8 @@
 package com.project.yogerOrder.product.cache;
 
 import com.project.yogerOrder.global.UsingTestContainerTest;
-import com.project.yogerOrder.product.cache.entity.ProductCacheEntity;
-import com.project.yogerOrder.product.cache.service.ProductCacheService;
+import com.project.yogerOrder.product.cache.domain.entity.ProductCacheEntity;
+import com.project.yogerOrder.product.cache.domain.service.ProductCacheService;
 import com.project.yogerOrder.product.entity.ProductEntity;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

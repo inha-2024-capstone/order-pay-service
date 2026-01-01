@@ -1,4 +1,4 @@
-package com.project.yogerOrder.product.cache.entity;
+package com.project.yogerOrder.product.cache.domain.entity;
 
 import com.project.yogerOrder.product.entity.ProductEntity;
 import jakarta.persistence.Id;

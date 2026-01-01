@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.yogerOrder.global.exception.ErrorResponse;
 import com.project.yogerOrder.order.entity.OrderItem;
-import com.project.yogerOrder.product.cache.service.ProductCacheService;
+import com.project.yogerOrder.product.cache.domain.service.ProductCacheService;
 import com.project.yogerOrder.product.config.ProductConfig;
 import com.project.yogerOrder.product.exception.ProductInsufficientException;
 import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
