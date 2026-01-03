@@ -1,7 +1,7 @@
-package com.project.yogerOrder.product.cache.service;
+package com.project.yogerOrder.product.cache.domain.service;
 
-import com.project.yogerOrder.product.cache.entity.ProductCacheEntity;
-import com.project.yogerOrder.product.cache.repository.ProductCacheRepository;
+import com.project.yogerOrder.product.cache.domain.entity.ProductCacheEntity;
+import com.project.yogerOrder.product.cache.domain.repository.ProductCacheRepository;
 import com.project.yogerOrder.product.entity.ProductEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

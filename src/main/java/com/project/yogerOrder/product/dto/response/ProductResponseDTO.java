@@ -1,7 +1,7 @@
 package com.project.yogerOrder.product.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.project.yogerOrder.product.cache.entity.ProductCacheEntity;
+import com.project.yogerOrder.product.cache.domain.entity.ProductCacheEntity;
 import com.project.yogerOrder.product.entity.ProductEntity;
 
 import jakarta.validation.constraints.NotNull;
