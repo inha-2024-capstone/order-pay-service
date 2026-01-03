@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.yogerOrder.global.exception.ErrorResponse;
 import com.project.yogerOrder.order.entity.OrderItem;
 import com.project.yogerOrder.product.cache.domain.service.ProductCacheService;
+import com.project.yogerOrder.product.cache.lock.service.ProductLockService;
 import com.project.yogerOrder.product.config.ProductConfig;
 import com.project.yogerOrder.product.exception.ProductInsufficientException;
 import com.project.yogerOrder.product.exception.handler.ProductClientErrorHandler;
@@ -50,6 +51,10 @@ public class ProductExternalTest {
 	
 	@MockitoBean
 	private ProductCacheService productCacheService;
+	
+	@MockitoBean
+	private ProductLockService productLockService;
+	
 	
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	
