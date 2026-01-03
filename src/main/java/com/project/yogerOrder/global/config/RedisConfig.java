@@ -1,5 +1,8 @@
 package com.project.yogerOrder.global.config;
 
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +13,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+	
+	private static final String REDIS_URL_PREFIX = "redis://";
 
 	@Bean
 	public LettuceConnectionFactory lettuceConnectionFactory(RedisProperties properties) {
@@ -29,5 +34,15 @@ public class RedisConfig {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new StringRedisSerializer());
 		return redisTemplate;
+	}
+
+	@Bean
+	public RedissonClient redissonClient(RedisProperties properties) {
+		Config config = new Config();
+		config.useSingleServer() // 임시로 단일 서버 설정
+			.setAddress(REDIS_URL_PREFIX + properties.getHost() + ":" + properties.getPort())
+			.setPassword(properties.getPassword());
+		
+		return Redisson.create(config);
 	}
 }
